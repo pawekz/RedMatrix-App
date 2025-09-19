@@ -1,0 +1,69 @@
+############################################
+# Root .gitignore for RedMatrixNotesApp
+# Consolidated from frontend and backend
+############################################
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# IDE / Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment files
+.env
+.env.*
+frontend/.env
+frontend/.env.*
+
+# Frontend (Vite/React)
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+frontend/.vite/
+
+# Backend (Spring Boot/Maven)
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/HELP.md
+
+# Generic dependency/build dirs (in case of future packages/modules)
+node_modules/
+**/node_modules/
+target/
+**/target/
+build/
+**/build/
+dist/
+**/dist/
+
+# Generated/packaged outputs
+out/
+out/**
+
+
