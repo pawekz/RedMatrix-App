@@ -3,6 +3,8 @@ package com.redmatrix.notesapp.controller;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,9 @@ import com.redmatrix.notesapp.service.NoteService;
 @RequestMapping("/api/notes")
 @CrossOrigin(origins = "http://localhost:3000")
 public class NoteController {
+    
+    private static final Logger logger = LoggerFactory.getLogger(NoteController.class);
+    
     @Autowired
     private NoteService noteService;
     
@@ -50,9 +55,12 @@ public class NoteController {
     @PostMapping
     public ResponseEntity<Note> createNote(@RequestBody Note note) {
         try {
+            logger.info("Creating new note with title: {}", note.getTitle());
             Note createdNote = noteService.createNote(note);
+            logger.info("Successfully created note with ID: {}", createdNote.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(createdNote);
         } catch (Exception e) {
+            logger.error("Error creating note: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
