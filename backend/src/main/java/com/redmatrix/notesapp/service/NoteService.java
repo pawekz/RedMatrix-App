@@ -3,21 +3,20 @@ package com.redmatrix.notesapp.service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
 import com.redmatrix.notesapp.entity.Note;
 import com.redmatrix.notesapp.repository.NoteRepository;
 
 @Service    
 public class NoteService {
-
     private static final Logger logger = LoggerFactory.getLogger(NoteService.class);
-
+  
     @Autowired
     private NoteRepository noteRepository;
     
@@ -33,6 +32,10 @@ public class NoteService {
     
     // Create new note
     public Note createNote(Note note) {
+
+        note.setCreatedAt(LocalDate.now());
+        note.setUpdatedAt(LocalDate.now());
+        return noteRepository.save(note);
         validateNote(note);
         logger.info("Creating note with title: {}", note.getTitle());
         note.setCreatedAt(LocalDate.now());
@@ -40,6 +43,7 @@ public class NoteService {
         Note savedNote = noteRepository.save(note);
         logger.info("Created note with ID: {}", savedNote.getId());
         return savedNote;
+
     }
     
     // Update existing note
@@ -68,6 +72,11 @@ public class NoteService {
     
     // Search notes
     public List<Note> searchNotes(String keyword) {
+
+        return noteRepository.searchNotes(keyword);
+    }
+}
+
         if (!StringUtils.hasText(keyword)) {
             logger.warn("Search attempted with empty keyword");
             return getAllNotes();

@@ -1,8 +1,9 @@
 package com.redmatrix.notesapp.repository;
 
+
+
 import java.time.LocalDate;
 import java.util.List;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,6 +25,7 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
     
     // Find notes ordered by updated date (most recent first)
     List<Note> findAllByOrderByUpdatedAtDesc();
+
     
     // Find notes created on a specific date
     List<Note> findByCreatedAt(LocalDate createdAt);

@@ -87,4 +87,6 @@ public class Note {
     public void preUpdate() {
         this.updatedAt = LocalDate.now();
     }
+
 }
+
