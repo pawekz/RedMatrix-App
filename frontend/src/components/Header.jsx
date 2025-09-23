@@ -3,11 +3,11 @@ import React from 'react';
 const Header = () => {
   return (
     <header className="bg-gradient-to-r from-[#DC143C] to-[#F75270] shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="flex items-center space-x-3">
+            <div className="flex-shrink-0 pl-0 ml-0"> {/* Zero padding and margin */}
+              <div className="flex items-center space-x-3 ml-4"> {/* Add margin only to the content */}
                 <img 
                   src="/notepad.png" 
                   alt="RedMatrix Notes Icon" 
@@ -20,11 +20,7 @@ const Header = () => {
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <div className="text-white text-sm hidden md:block">
-              Welcome to our notes app
-            </div>
-          </div>
+          
         </div>
       </div>
     </header>
