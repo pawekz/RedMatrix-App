@@ -1,66 +1,91 @@
 package com.redmatrix.notesapp.controller;
 
-import com.redmatrix.notesapp.entity.Note;
-import com.redmatrix.notesapp.repository.NoteRepository;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-
 import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.redmatrix.notesapp.entity.Note;
+import com.redmatrix.notesapp.service.NoteService;
+
 
 @RestController
 @RequestMapping("/api/notes")
-@CrossOrigin(origins = "http://localhost:5173") 
+@CrossOrigin(origins = "http://localhost:5173")
 public class NoteController {
-
-    private final NoteRepository noteRepository;
-
-    public NoteController(NoteRepository noteRepository) {
-        this.noteRepository = noteRepository;
-    }
-
-    // Create a new note
-    @PostMapping
-    public Note createNote(@RequestBody Note note) {
-        return noteRepository.save(note);
-    }
-
-    // Get all notes
+    @Autowired
+    private NoteService noteService;
+    
+    // GET /api/notes - Get all notes
     @GetMapping
-    public List<Note> getAllNotes() {
-        return noteRepository.findAll();
+    public ResponseEntity<List<Note>> getAllNotes() {
+        List<Note> notes = noteService.getAllNotes();
+        return ResponseEntity.ok(notes);
     }
-
-    // Get note by ID
+    
+    // GET /api/notes/{id} - Get note by ID
     @GetMapping("/{id}")
     public ResponseEntity<Note> getNoteById(@PathVariable Long id) {
-        return noteRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Optional<Note> note = noteService.getNoteById(id);
+        
+        if (note.isPresent()) {
+            return ResponseEntity.ok(note.get());
+        }
+        
+        return ResponseEntity.notFound().build();
     }
-
-    // Update note (pa check ko ani ug sa delete kay gi copy paste ra ko ni sa daan nga code, basin sayop)
+    
+    // POST /api/notes - Create new note
+    @PostMapping
+    public ResponseEntity<Note> createNote(@RequestBody Note note) {
+        try {
+            Note createdNote = noteService.createNote(note);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdNote);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+    
+    // PUT /api/notes/{id} - Update note
     @PutMapping("/{id}")
-    public ResponseEntity<Note> updateNote(@PathVariable Long id, @RequestBody Note updatedNote) {
-        return noteRepository.findById(id)
-                .map(note -> {
-                    note.setTitle(updatedNote.getTitle());
-                    note.setContent(updatedNote.getContent());
-                    return ResponseEntity.ok(noteRepository.save(note));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Note> updateNote(@PathVariable Long id, @RequestBody Note noteDetails) {
+        try {
+            Note updatedNote = noteService.updateNote(id, noteDetails);
+            return ResponseEntity.ok(updatedNote);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
-
-    // Delete note
+    
+    // DELETE /api/notes/{id} - Delete note
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNote(@PathVariable Long id) {
-        return noteRepository.findById(id)
-                .map(note -> {
-                    noteRepository.delete(note);
-                    return ResponseEntity.noContent().<Void>build(); // force Void here, pa check ko if sakto kay na baghuan ko ani niya, dli mugana ako daan code
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        try {
+            noteService.deleteNote(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
-
-
+    
+    // GET /api/notes/search?q={keyword} - Search notes
+    @GetMapping("/search")
+    public ResponseEntity<List<Note>> searchNotes(@RequestParam("q") String keyword) {
+        List<Note> notes = noteService.searchNotes(keyword);
+        return ResponseEntity.ok(notes);
+    }
 }

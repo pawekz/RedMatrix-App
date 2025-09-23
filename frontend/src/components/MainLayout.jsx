@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import NotesGrid from './NotesGrid';
@@ -13,27 +13,52 @@ const MainLayout = () => {
     setShowNotepad(true);
   };
 
-  //pa check ko if sakto ni kay gi copy ra ko ni sa ako daan code, di ko sure kung mo gana ba ni tarong
+  //Save new note to backend
   const handleSaveNote = () => {
-    console.log('Saving note:', newNote);
+      const noteToSend = {
+        title: newNote.title,
+        content: newNote.content,
+      };
     fetch('http://localhost:8080/api/notes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newNote),
+      body: JSON.stringify(noteToSend),
     })
-      .then((res) => res.json())
-      .then((savedNote) => {
-        setNotes([savedNote, ...notes]);
-        setShowNotepad(false);
-        setNewNote({ title: '', content: '' });
-      })
-      .catch((err) => console.error('Error saving note:', err));
+      .then((res) => {
+      if (!res.ok) {
+        throw new Error(`Error saving note: ${res.status}`);
+      }
+      return res.json();
+    })
+    .then((savedNote) => {
+      console.log('Note saved:', savedNote);
+      setNotes([savedNote, ...notes]);
+      setShowNotepad(false);
+      setNewNote({ title: '', content: '' });
+    })
+    .catch((err) => console.error(err));
       
   };
 
+  // Show all all ntoes from backend
   const handleViewAllNotes = () => {
-    console.log('View All Notes clicked');
+    fetch('http://localhost:8080/api/notes', {
+      method: 'GET', 
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Error fetching notes: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((notes) => {
+        console.log('Fetched notes:', notes);
+        setNotes(notes);
+      })
+      .catch((err) => console.error(err));
   };
+
 
   const handleEditNote = (note) => {
     console.log('Edit Note clicked:', note);
@@ -45,9 +70,9 @@ const MainLayout = () => {
     }
   };
 
-  const handleViewNote = (note) => {
+ const handleViewNote = (note) => {
     console.log('View Note clicked:', note);
-  };
+  }; 
 
   return (
     <div className="min-h-screen bg-[#FDEBD0]">
@@ -58,20 +83,20 @@ const MainLayout = () => {
           onAddNote={handleAddNote}
           onViewAllNotes={handleViewAllNotes}
         />
-
+        {/* Notes GRid, ari ang mga notes */}
         <main className="flex-1 min-h-[calc(100vh-64px)]">
           <NotesGrid 
             notes={notes}
             onEditNote={handleEditNote}
             onDeleteNote={handleDeleteNote}
-            onViewNote={handleViewNote}
+            onAddNote={handleAddNote}
           />
         </main>
       </div>
 
       {/* Modal for Notepad */}
       {showNotepad && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/10 backdrop-blur-sm z-50">
           <div className="bg-white w-[500px] h-[500px] max-w-[50%] max-h-[50%] p-4 rounded shadow-lg flex flex-col">
             <h2 className="text-xl font-bold mb-4">New Note</h2>
 
