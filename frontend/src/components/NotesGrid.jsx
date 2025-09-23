@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-const NotesGrid = ({ onEditNote, onDeleteNote, onViewNote, onAddNote }) => {
+const NotesGrid = ({ onEditNote, onDeleteNote, onAddNote }) => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,7 +22,6 @@ const NotesGrid = ({ onEditNote, onDeleteNote, onViewNote, onAddNote }) => {
         setLoading(false);
       });
   }, []);
-
   const today = new Date().toISOString().split('T')[0];
   const displayNotes = notes && notes.length > 0 ? notes : [];
 
@@ -79,8 +78,7 @@ const NotesGrid = ({ onEditNote, onDeleteNote, onViewNote, onAddNote }) => {
         {displayNotes.map((note) => (
           <div
             key={note.id}
-            className="bg-white rounded-lg shadow-md border border-[#F7CAC9] hover:shadow-lg transition-shadow duration-200 cursor-pointer group"
-            onClick={() => onViewNote && onViewNote(note)}
+            className="group bg-white rounded-lg shadow-md border border-[#F7CAC9] hover:shadow-lg transition-shadow duration-200"
           >
             <div className="p-4">
               <div className="flex items-start justify-between mb-3">
@@ -88,11 +86,9 @@ const NotesGrid = ({ onEditNote, onDeleteNote, onViewNote, onAddNote }) => {
                   {note.title}
                 </h3>
                 <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  {/* Edit button */}
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEditNote && onEditNote(note);
-                    }}
+                    onClick={() => onEditNote && onEditNote(note)}
                     className="p-1 text-[#F75270] hover:text-[#DC143C] transition-colors duration-200"
                     title="Edit Note"
                   >
@@ -110,11 +106,10 @@ const NotesGrid = ({ onEditNote, onDeleteNote, onViewNote, onAddNote }) => {
                       />
                     </svg>
                   </button>
+
+                  {/* Delete button, kinsa wla pa commit, pa add ko functionality ani*/}
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteNote && onDeleteNote(note);
-                    }}
+                    onClick={() => onDeleteNote && onDeleteNote(note)}
                     className="p-1 text-[#F75270] hover:text-[#DC143C] transition-colors duration-200"
                     title="Delete Note"
                   >
@@ -140,22 +135,9 @@ const NotesGrid = ({ onEditNote, onDeleteNote, onViewNote, onAddNote }) => {
               {/* Timestamp */}
               <div className="flex items-center justify-between text-xs text-[#999999]">
                 <span>Created: {note.createdAt}</span>
-                {note.updatedAt !== note.createdAt && <span>Updated: {note.updatedAt}</span>}
-              </div>
-            </div>
-
-            {/* Click to View Note highlight, tangtangon nlang ni? */}
-            <div className="px-4 py-3 bg-[#FDEBD0] border-t border-[#F7CAC9] rounded-b-lg">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-[#666666]">Click to view details</span>
-                <svg
-                  className="w-4 h-4 text-[#DC143C]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                </svg>
+                {note.updatedAt !== note.createdAt && (
+                  <span>Updated: {note.updatedAt}</span>
+                )}
               </div>
             </div>
           </div>

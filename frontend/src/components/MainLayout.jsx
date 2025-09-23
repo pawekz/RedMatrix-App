@@ -7,66 +7,79 @@ const MainLayout = () => {
   const [notes, setNotes] = useState([]);
   const [showNotepad, setShowNotepad] = useState(false);
   const [newNote, setNewNote] = useState({ title: '', content: '' });
+  const [editingNote, setEditingNote] = useState(null);
+
 
   const handleAddNote = () => {
     console.log('Add Note clicked');
+    setNewNote({ title: '', content: '' });
     setShowNotepad(true);
   };
 
-  //Save new note to backend
+    // Save new note OR update existing note to backend
   const handleSaveNote = () => {
-      const noteToSend = {
-        title: newNote.title,
-        content: newNote.content,
-      };
-    fetch('http://localhost:8080/api/notes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(noteToSend),
-    })
-      .then((res) => {
-      if (!res.ok) {
-        throw new Error(`Error saving note: ${res.status}`);
-      }
-      return res.json();
-    })
-    .then((savedNote) => {
-      console.log('Note saved:', savedNote);
-      setNotes([savedNote, ...notes]);
-      setShowNotepad(false);
-      setNewNote({ title: '', content: '' });
-    })
-    .catch((err) => console.error(err));
-      
-  };
+    const noteToSend = {
+      title: newNote.title,
+      content: newNote.content,
+    };
 
-  // Show all all ntoes from backend
-  const handleViewAllNotes = () => {
-    fetch('http://localhost:8080/api/notes', {
-      method: 'GET', 
-      headers: { 'Content-Type': 'application/json' },
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Error fetching notes: ${res.status}`);
-        }
-        return res.json();
+    //update note
+    if (editingNote) {
+      fetch(`http://localhost:8080/api/notes/${editingNote.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(noteToSend),
       })
-      .then((notes) => {
-        console.log('Fetched notes:', notes);
-        setNotes(notes);
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`Error updating note: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then((updatedNote) => {
+          console.log('Note updated:', updatedNote);
+          setNotes(notes.map((n) => (n.id === updatedNote.id ? updatedNote : n)));
+          setShowNotepad(false);
+          setNewNote({ title: '', content: '' });
+          setEditingNote(null);
+        })
+        .catch((err) => console.error(err));
+    } else {
+      // Crreate note
+      fetch('http://localhost:8080/api/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(noteToSend),
       })
-      .catch((err) => console.error(err));
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`Error saving note: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then((savedNote) => {
+          console.log('Note saved:', savedNote);
+          setNotes([savedNote, ...notes]);
+          setShowNotepad(false);
+          setNewNote({ title: '', content: '' });
+        })
+        .catch((err) => console.error(err));
+    }
+    
   };
 
 
   const handleEditNote = (note) => {
     console.log('Edit Note clicked:', note);
+    setEditingNote(note);
+    setNewNote({ title: note.title, content: note.content });
+    setShowNotepad(true);
   };
 
   const handleDeleteNote = (note) => {
     console.log('Delete Note clicked:', note);
     if (window.confirm('Are you sure you want to delete this note?')) {
+      //add handler
     }
   };
 
@@ -81,7 +94,6 @@ const MainLayout = () => {
       <div className="flex">
         <Sidebar 
           onAddNote={handleAddNote}
-          onViewAllNotes={handleViewAllNotes}
         />
         {/* Notes GRid, ari ang mga notes */}
         <main className="flex-1 min-h-[calc(100vh-64px)]">
