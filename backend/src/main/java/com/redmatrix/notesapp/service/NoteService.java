@@ -1,15 +1,13 @@
 package com.redmatrix.notesapp.service;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import com.redmatrix.notesapp.entity.Note;
 import com.redmatrix.notesapp.repository.NoteRepository;
 
@@ -32,55 +30,60 @@ public class NoteService {
     
     // Create new note
     public Note createNote(Note note) {
-
-        note.setCreatedAt(LocalDate.now());
-        note.setUpdatedAt(LocalDate.now());
-        return noteRepository.save(note);
         validateNote(note);
         logger.info("Creating note with title: {}", note.getTitle());
-        note.setCreatedAt(LocalDate.now());
-        note.setUpdatedAt(LocalDate.now());
+        
+        LocalDateTime now = LocalDateTime.now();
+        note.setCreatedAt(now);
+        note.setUpdatedAt(now);
+        
         Note savedNote = noteRepository.save(note);
         logger.info("Created note with ID: {}", savedNote.getId());
         return savedNote;
-
     }
     
     // Update existing note
     public Note updateNote(Long id, Note noteDetails) {
+        validateNote(noteDetails);
+        logger.info("Updating note with ID: {}", id);
+        
         Optional<Note> optionalNote = noteRepository.findById(id);
         
         if (optionalNote.isPresent()) {
             Note note = optionalNote.get();
             note.setTitle(noteDetails.getTitle());
             note.setContent(noteDetails.getContent());
-            note.setUpdatedAt(LocalDate.now());
-            return noteRepository.save(note);
+            note.setUpdatedAt(LocalDateTime.now());
+            
+            Note savedNote = noteRepository.save(note);
+            logger.info("Successfully updated note with ID: {}", id);
+            return savedNote;
         }
         
+        logger.error("Note not found with ID: {}", id);
         throw new RuntimeException("Note not found with id: " + id);
     }
     
     // Delete note
     public void deleteNote(Long id) {
+        logger.info("Deleting note with ID: {}", id);
+        
         if (noteRepository.existsById(id)) {
             noteRepository.deleteById(id);
+            logger.info("Successfully deleted note with ID: {}", id);
         } else {
+            logger.error("Note not found for deletion with ID: {}", id);
             throw new RuntimeException("Note not found with id: " + id);
         }
     }
     
     // Search notes
     public List<Note> searchNotes(String keyword) {
-
-        return noteRepository.searchNotes(keyword);
-    }
-}
-
         if (!StringUtils.hasText(keyword)) {
             logger.warn("Search attempted with empty keyword");
             return getAllNotes();
         }
+        
         logger.info("Searching notes with keyword: {}", keyword);
         return noteRepository.searchNotes(keyword);
     }
