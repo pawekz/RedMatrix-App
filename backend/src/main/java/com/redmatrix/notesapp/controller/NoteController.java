@@ -54,19 +54,16 @@ public class NoteController {
     @PostMapping
     public ResponseEntity<Note> createNote(@RequestBody Note note) {
         try {
-
-            Note createdNote = noteService.createNote(note);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdNote);
-        } catch (Exception e) {
-
             logger.info("Creating new note with title: {}", note.getTitle());
             Note createdNote = noteService.createNote(note);
             logger.info("Successfully created note with ID: {}", createdNote.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(createdNote);
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid note data: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
             logger.error("Error creating note: {}", e.getMessage());
-
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     
@@ -74,12 +71,19 @@ public class NoteController {
     @PutMapping("/{id}")
     public ResponseEntity<Note> updateNote(@PathVariable Long id, @RequestBody Note noteDetails) {
         try {
+            logger.info("Updating note with ID: {}", id);
             Note updatedNote = noteService.updateNote(id, noteDetails);
+            logger.info("Successfully updated note with ID: {}", id);
             return ResponseEntity.ok(updatedNote);
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid note data for update: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (RuntimeException e) {
+            logger.error("Note not found for update with ID: {}", id);
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            logger.error("Error updating note with ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     
@@ -87,17 +91,30 @@ public class NoteController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNote(@PathVariable Long id) {
         try {
+            logger.info("Deleting note with ID: {}", id);
             noteService.deleteNote(id);
+            logger.info("Successfully deleted note with ID: {}", id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
+            logger.error("Note not found for deletion with ID: {}", id);
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            logger.error("Error deleting note with ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     
     // GET /api/notes/search?q={keyword} - Search notes
     @GetMapping("/search")
     public ResponseEntity<List<Note>> searchNotes(@RequestParam("q") String keyword) {
-        List<Note> notes = noteService.searchNotes(keyword);
-        return ResponseEntity.ok(notes);
+        try {
+            logger.info("Searching notes with keyword: {}", keyword);
+            List<Note> notes = noteService.searchNotes(keyword);
+            logger.info("Found {} notes matching keyword: {}", notes.size(), keyword);
+            return ResponseEntity.ok(notes);
+        } catch (Exception e) {
+            logger.error("Error searching notes with keyword '{}': {}", keyword, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

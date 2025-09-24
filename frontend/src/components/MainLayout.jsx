@@ -2,12 +2,39 @@ import React, { useEffect, useState } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import NotesGrid from './NotesGrid';
+import ApiTest from './ApiTest';
 
 const MainLayout = () => {
   const [notes, setNotes] = useState([]);
   const [showNotepad, setShowNotepad] = useState(false);
   const [newNote, setNewNote] = useState({ title: '', content: '' });
   const [editingNote, setEditingNote] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch notes from backend
+  const fetchNotes = () => {
+    setLoading(true);
+    fetch('http://localhost:8080/api/notes')
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Error fetching notes: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setNotes(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch notes:', err);
+        setLoading(false);
+      });
+  };
+
+  // Fetch notes on component mount
+  useEffect(() => {
+    fetchNotes();
+  }, []);
 
 
   const handleAddNote = () => {
@@ -79,7 +106,22 @@ const MainLayout = () => {
   const handleDeleteNote = (note) => {
     console.log('Delete Note clicked:', note);
     if (window.confirm('Are you sure you want to delete this note?')) {
-      //add handler
+      fetch(`http://localhost:8080/api/notes/${note.id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      })
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`Error deleting note: ${res.status}`);
+          }
+          console.log('Note deleted successfully');
+          // Remove the deleted note from the state
+          setNotes(notes.filter((n) => n.id !== note.id));
+        })
+        .catch((err) => {
+          console.error('Failed to delete note:', err);
+          alert('Failed to delete note. Please try again.');
+        });
     }
   };
 
@@ -90,6 +132,7 @@ const MainLayout = () => {
   return (
     <div className="min-h-screen bg-[#FDEBD0]">
       <Header />
+      <ApiTest />
 
       <div className="flex">
         <Sidebar 
@@ -99,6 +142,7 @@ const MainLayout = () => {
         <main className="flex-1 min-h-[calc(100vh-64px)]">
           <NotesGrid 
             notes={notes}
+            loading={loading}
             onEditNote={handleEditNote}
             onDeleteNote={handleDeleteNote}
             onAddNote={handleAddNote}
@@ -110,7 +154,9 @@ const MainLayout = () => {
       {showNotepad && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/10 backdrop-blur-sm z-50">
           <div className="bg-white w-[500px] h-[500px] max-w-[50%] max-h-[50%] p-4 rounded shadow-lg flex flex-col">
-            <h2 className="text-xl font-bold mb-4">New Note</h2>
+            <h2 className="text-xl font-bold mb-4">
+              {editingNote ? 'Edit Note' : 'New Note'}
+            </h2>
 
             <input
               type="text"
@@ -138,7 +184,7 @@ const MainLayout = () => {
                 onClick={handleSaveNote}
                 className="px-3 py-1 bg-red-600 text-white rounded"
               >
-                Save
+                {editingNote ? 'Update' : 'Save'}
               </button>
             </div>
           </div>
