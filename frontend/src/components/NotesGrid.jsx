@@ -1,28 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
-const NotesGrid = ({ onEditNote, onDeleteNote, onAddNote }) => {
-  const [notes, setNotes] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // fetch notes on component mount
-  useEffect(() => {
-    fetch('http://localhost:8080/api/notes')
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Error fetching notes: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setNotes(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Failed to fetch notes:', err);
-        setLoading(false);
-      });
-  }, []);
-  const today = new Date().toISOString().split('T')[0];
+const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote }) => {
   const displayNotes = notes && notes.length > 0 ? notes : [];
 
   // loading spinner
@@ -134,9 +112,9 @@ const NotesGrid = ({ onEditNote, onDeleteNote, onAddNote }) => {
 
               {/* Timestamp */}
               <div className="flex items-center justify-between text-xs text-[#999999]">
-                <span>Created: {note.createdAt}</span>
+                <span>Created: {new Date(note.createdAt).toLocaleDateString()}</span>
                 {note.updatedAt !== note.createdAt && (
-                  <span>Updated: {note.updatedAt}</span>
+                  <span>Updated: {new Date(note.updatedAt).toLocaleDateString()}</span>
                 )}
               </div>
             </div>
