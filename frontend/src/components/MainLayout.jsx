@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import NotesGrid from './NotesGrid';
+import ApiTest from './ApiTest';
+import { noteUrl } from '../config/ApiConfig.jsx';
 
 const MainLayout = () => {
   const [notes, setNotes] = useState([]);
@@ -30,7 +32,7 @@ const MainLayout = () => {
   // Fetch notes from backend
   const fetchNotes = () => {
     setLoading(true);
-    fetch('http://localhost:8080/api/notes')
+    fetch(noteUrl())
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Error fetching notes: ${res.status}`);
@@ -83,7 +85,7 @@ const MainLayout = () => {
     };
 
     if (editingNote) {
-      fetch(`http://localhost:8080/api/notes/${editingNote.id}`, {
+      fetch(noteUrl(editingNote.id), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(noteToSend),
@@ -104,7 +106,8 @@ const MainLayout = () => {
         })
         .catch((err) => console.error(err));
     } else {
-      fetch('http://localhost:8080/api/notes', {
+      // Crreate note
+      fetch(noteUrl(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(noteToSend),
@@ -136,7 +139,7 @@ const MainLayout = () => {
   const handleDeleteNote = (note) => {
     console.log('Delete Note clicked:', note);
     if (window.confirm('Are you sure you want to delete this note?')) {
-      fetch(`http://localhost:8080/api/notes/${note.id}`, {
+      fetch(noteUrl(note.id), {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
       })
