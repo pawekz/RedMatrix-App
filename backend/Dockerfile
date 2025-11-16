@@ -18,6 +18,9 @@ COPY --from=build /app/target/*.jar app.jar
 # Copy SSL Certificate (azure)
 #COPY DigiCertGlobalRootCA.crt.pem /app/DigiCertGlobalRootCA.crt.pem
 
+#Copy SSL Certificate (DigitalOcean)
+COPY ca-certificate.crt /app/ca-certificate.crt
+
 # Set environment variables (if you want to use a specific profile, e.g., prod)
 #ENV SPRING_PROFILES_ACTIVE=prod
 #ENV SPRING_PROFILES_ACTIVE=azure
