@@ -18,8 +18,14 @@ COPY --from=build /app/target/*.jar app.jar
 # Copy SSL Certificate (azure)
 #COPY DigiCertGlobalRootCA.crt.pem /app/DigiCertGlobalRootCA.crt.pem
 
-#Copy SSL Certificate (DigitalOcean)
-COPY ca-certificate.crt /app/ca-certificate.crt
+# Copy SSL Certificate (DigitalOcean) and trust it system-wide
+COPY ca-certificate.crt /tmp/ca-certificate.crt
+RUN keytool -importcert -noprompt \
+	-alias digitalocean-ca \
+	-file /tmp/ca-certificate.crt \
+	-keystore $JAVA_HOME/lib/security/cacerts \
+	-storepass changeit \
+ && rm /tmp/ca-certificate.crt
 
 # Set environment variables (if you want to use a specific profile, e.g., prod)
 #ENV SPRING_PROFILES_ACTIVE=prod
