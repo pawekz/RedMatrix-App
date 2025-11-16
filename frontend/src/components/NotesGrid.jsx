@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMode }) => {
   const displayNotes = notes && notes.length > 0 ? notes : [];
+  const [copiedTxHash, setCopiedTxHash] = useState(null);
 
   const formatDateTime = (dateValue) => {
     if (!dateValue) {
@@ -20,6 +21,15 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
+    });
+  };
+
+  const copyTxHash = (txHash) => {
+    navigator.clipboard.writeText(txHash).then(() => {
+      setCopiedTxHash(txHash);
+      setTimeout(() => setCopiedTxHash(null), 2000); // Clear after 2 seconds
+    }).catch(err => {
+      console.error('Failed to copy:', err);
     });
   };
 
@@ -73,15 +83,31 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
 
   return (
     <div className="flex-1 p-6">
-      <div className="mb-6">
-        <h2 className={`text-2xl font-bold mb-2 ${
-          darkMode ? 'text-white' : 'text-[#2D2D2D]'
-        }`}>
-          Your Notes
-        </h2>
-        <p className={darkMode ? 'text-gray-400' : 'text-[#666666]'}>
-          Manage and organize all your notes
-        </p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h2 className={`text-2xl font-bold mb-2 ${
+            darkMode ? 'text-white' : 'text-[#2D2D2D]'
+          }`}>
+            Your Notes
+          </h2>
+          <p className={darkMode ? 'text-gray-400' : 'text-[#666666]'}>
+            Manage and organize all your notes
+          </p>
+        </div>
+        
+        <button
+          onClick={onAddNote}
+          className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200 font-medium shadow-sm ${
+            darkMode
+              ? 'bg-red-600 hover:bg-red-700 text-white'
+              : 'bg-[#DC143C] hover:bg-[#B91C3C] text-white'
+          }`}
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Add New Note
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -138,12 +164,65 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
                 {note.content}
               </p>
 
-              <div className={`flex items-center justify-between text-xs ${
+              <div className={`flex flex-col space-y-1 text-xs ${
                 darkMode ? 'text-gray-500' : 'text-[#999999]'
               }`}>
-                <span>Created: {formatDateTime(note.createdAt)}</span>
-                {note.updatedAt !== note.createdAt && (
-                  <span>Updated: {formatDateTime(note.updatedAt)}</span>
+                <div className="flex items-center justify-between">
+                  <span>Created: {formatDateTime(note.createdAt)}</span>
+                  {note.updatedAt !== note.createdAt && (
+                    <span>Updated: {formatDateTime(note.updatedAt)}</span>
+                  )}
+                </div>
+                
+                {/* Blockchain Info */}
+                {note.lastTxHash && (
+                  <div className="flex items-center space-x-1 mt-1">
+                    <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className={`text-xs ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                      On-chain
+                    </span>
+                    <a
+                      href={`https://preview.cardanoscan.io/transaction/${note.lastTxHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`text-xs underline hover:no-underline ${
+                        darkMode ? 'text-blue-400' : 'text-blue-600'
+                      }`}
+                      title={note.lastTxHash}
+                    >
+                      View TX
+                    </a>
+                    <div className="relative">
+                      <button
+                        onClick={() => copyTxHash(note.lastTxHash)}
+                        className={`p-0.5 rounded transition-colors duration-200 ${
+                          darkMode 
+                            ? 'text-gray-400 hover:text-gray-200' 
+                            : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                        title="Copy transaction hash"
+                      >
+                        {copiedTxHash === note.lastTxHash ? (
+                          <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        )}
+                      </button>
+                      {copiedTxHash === note.lastTxHash && (
+                        <span className={`absolute -top-6 left-1/2 transform -translate-x-1/2 px-2 py-0.5 text-xs rounded whitespace-nowrap ${
+                          darkMode ? 'bg-gray-700 text-white' : 'bg-gray-800 text-white'
+                        }`}>
+                          Copied!
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>

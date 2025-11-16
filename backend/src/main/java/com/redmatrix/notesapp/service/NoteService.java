@@ -37,8 +37,11 @@ public class NoteService {
         note.setCreatedAt(now);
         note.setUpdatedAt(now);
         
+        // Blockchain fields are already set from the request body
+        // No need to modify them here
+        
         Note savedNote = noteRepository.save(note);
-        logger.info("Created note with ID: {}", savedNote.getId());
+        logger.info("Created note with ID: {} with txHash: {}", savedNote.getId(), savedNote.getLastTxHash());
         return savedNote;
     }
     
@@ -54,6 +57,17 @@ public class NoteService {
             note.setTitle(noteDetails.getTitle());
             note.setContent(noteDetails.getContent());
             note.setUpdatedAt(LocalDateTime.now());
+            
+            // Update blockchain fields if provided
+            if (noteDetails.getContentHash() != null) {
+                note.setContentHash(noteDetails.getContentHash());
+            }
+            if (noteDetails.getLastTxHash() != null) {
+                note.setLastTxHash(noteDetails.getLastTxHash());
+            }
+            if (noteDetails.getOwnerWallet() != null) {
+                note.setOwnerWallet(noteDetails.getOwnerWallet());
+            }
             
             Note savedNote = noteRepository.save(note);
             logger.info("Successfully updated note with ID: {}", id);

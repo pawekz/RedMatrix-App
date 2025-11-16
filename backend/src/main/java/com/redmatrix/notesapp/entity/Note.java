@@ -24,11 +24,20 @@ public class Note {
     @Column(columnDefinition = "TEXT")
     private String content;
     
+    @Column(name = "owner_wallet")
+    private String ownerWallet;
+    
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
     
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+    
+    @Column(name = "last_tx_hash")
+    private String lastTxHash;
+    
+    @Column(name = "content_hash")
+    private String contentHash;
     
     // Constructors
     public Note() {
@@ -81,6 +90,30 @@ public class Note {
     
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    public String getOwnerWallet() {
+        return ownerWallet;
+    }
+    
+    public void setOwnerWallet(String ownerWallet) {
+        this.ownerWallet = ownerWallet;
+    }
+    
+    public String getLastTxHash() {
+        return lastTxHash;
+    }
+    
+    public void setLastTxHash(String lastTxHash) {
+        this.lastTxHash = lastTxHash;
+    }
+    
+    public String getContentHash() {
+        return contentHash;
+    }
+    
+    public void setContentHash(String contentHash) {
+        this.contentHash = contentHash;
     }
     
     @PreUpdate
