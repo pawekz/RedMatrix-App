@@ -3,6 +3,26 @@ import React from 'react';
 const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMode }) => {
   const displayNotes = notes && notes.length > 0 ? notes : [];
 
+  const formatDateTime = (dateValue) => {
+    if (!dateValue) {
+      return '—';
+    }
+
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) {
+      return dateValue;
+    }
+
+    return date.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center mt-20">
@@ -121,9 +141,9 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
               <div className={`flex items-center justify-between text-xs ${
                 darkMode ? 'text-gray-500' : 'text-[#999999]'
               }`}>
-                <span>Created: {new Date(note.createdAt).toLocaleDateString()}</span>
+                <span>Created: {formatDateTime(note.createdAt)}</span>
                 {note.updatedAt !== note.createdAt && (
-                  <span>Updated: {new Date(note.updatedAt).toLocaleDateString()}</span>
+                  <span>Updated: {formatDateTime(note.updatedAt)}</span>
                 )}
               </div>
             </div>
