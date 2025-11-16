@@ -1,6 +1,7 @@
 package com.redmatrix.notesapp.entity;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,10 +31,13 @@ public class Note {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
     
+    // Persist timestamps in UTC+8 (Asia/Manila) instead of the JVM default zone.
+    private static final ZoneId TARGET_ZONE = ZoneId.of("Asia/Manila");
+    
     // Constructors
     public Note() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now(TARGET_ZONE);
+        this.updatedAt = LocalDateTime.now(TARGET_ZONE);
     }
     
     public Note(String title, String content) {
@@ -85,7 +89,7 @@ public class Note {
     
     @PreUpdate
     public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now(TARGET_ZONE);
     }
 
 }
