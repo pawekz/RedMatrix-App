@@ -15,7 +15,7 @@ public class WebConfig {
             @Override
             public void addCorsMappings(@NonNull CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5173", "https://note-app-redmatrix-u36ry.ondigitalocean.app/")
+                        .allowedOrigins("http://localhost:5173", "https://note-app-redmatrix-u36ry.ondigitalocean.app")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true)
