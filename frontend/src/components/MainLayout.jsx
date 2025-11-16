@@ -30,6 +30,7 @@ const MainLayout = () => {
     walletApi,
     selectedWallet,
     walletAddress,
+    walletAddressBech32,
     isConnected,
     isConnecting,
     error: walletError,
@@ -314,7 +315,7 @@ const MainLayout = () => {
                   Connected: {selectedWallet}
                 </span>
                 <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  {walletAddress ? `(${walletAddress.substring(0, 8)}...${walletAddress.substring(walletAddress.length - 6)})` : ''}
+                  {walletAddressBech32 ? `(${walletAddressBech32.substring(0, 12)}...${walletAddressBech32.substring(walletAddressBech32.length - 8)})` : ''}
                 </span>
               </>
             ) : (

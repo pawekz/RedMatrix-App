@@ -65,8 +65,8 @@ export const createBlockchainTransaction = async (
     
     // Get wallet address in bech32 format (addr1...)
     const walletAddresses = await browserWallet.getUsedAddresses();
-    const walletAddress = walletAddresses[0]; // Get first address in bech32 format
-    console.log('Wallet address (bech32):', walletAddress);
+    const walletAddressBech32 = walletAddresses[0]; // Get first address in bech32 format
+    console.log('Wallet address (bech32):', walletAddressBech32);
     
     // Build transaction using Mesh Transaction builder with BrowserWallet as initiator
     const tx = new Transaction({ initiator: browserWallet });
@@ -75,16 +75,16 @@ export const createBlockchainTransaction = async (
     // The funds will be returned to wallet minus the transaction fee
     console.log('Adding minimal output to own address...');
     tx.sendLovelace(
-      walletAddress, // Use bech32 address, not hex
+      walletAddressBech32, // Use bech32 address, not hex
       '1000000' // 1 ADA in lovelace
     );
     
     // Create metadata for the transaction
     // Note: Cardano metadata has a 64-byte limit per string value
-    // Split long addresses into chunks if needed
+    // Use bech32 address format (addr1...) instead of hex for better readability
     console.log('Creating metadata...');
     
-    const ownerAddress = metadata.owner;
+    const ownerAddress = walletAddressBech32; // Use bech32 format, not the hex from metadata.owner
     let ownerMetadata;
     
     // If owner address is longer than 64 characters, split it into chunks

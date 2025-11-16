@@ -4,7 +4,8 @@ export const useWallet = () => {
   const [wallets, setWallets] = useState([]);
   const [walletApi, setWalletApi] = useState(null);
   const [selectedWallet, setSelectedWallet] = useState('');
-  const [walletAddress, setWalletAddress] = useState('');
+  const [walletAddress, setWalletAddress] = useState(''); // Hex format
+  const [walletAddressBech32, setWalletAddressBech32] = useState(''); // Bech32 format (addr1...)
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState(null);
@@ -23,9 +24,23 @@ export const useWallet = () => {
       setWalletApi(api);
       setSelectedWallet(walletName);
       
-      // Get wallet address
+      // Get wallet address (hex format from CIP-30)
       const addressHex = await api.getChangeAddress();
       setWalletAddress(addressHex);
+      
+      // Get bech32 address for display - use Mesh SDK BrowserWallet
+      try {
+        const { BrowserWallet } = await import('@meshsdk/core');
+        const browserWallet = await BrowserWallet.enable(walletName);
+        const usedAddresses = await browserWallet.getUsedAddresses();
+        const bech32Address = usedAddresses[0] || '';
+        setWalletAddressBech32(bech32Address);
+        console.log('Wallet address (bech32):', bech32Address);
+      } catch (err) {
+        console.warn('Failed to get bech32 address:', err);
+        setWalletAddressBech32(''); // Fallback to empty
+      }
+      
       setIsConnected(true);
       
       // Save connected wallet to localStorage for persistence
@@ -69,6 +84,7 @@ export const useWallet = () => {
   const disconnectWallet = () => {
     setWalletApi(null);
     setWalletAddress('');
+    setWalletAddressBech32('');
     setSelectedWallet('');
     setIsConnected(false);
     setError(null);
@@ -83,6 +99,7 @@ export const useWallet = () => {
     walletApi,
     selectedWallet,
     walletAddress,
+    walletAddressBech32,
     isConnected,
     isConnecting,
     error,
