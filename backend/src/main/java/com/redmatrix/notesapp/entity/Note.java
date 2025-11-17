@@ -1,13 +1,15 @@
 package com.redmatrix.notesapp.entity;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
@@ -26,19 +28,16 @@ public class Note {
     private String content;
     
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
     
     @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    private OffsetDateTime updatedAt;
     
-    // Persist timestamps in UTC+8 (Asia/Manila) instead of the JVM default zone.
-    private static final ZoneId TARGET_ZONE = ZoneId.of("Asia/Manila");
+    // Persist timestamps in UTC regardless of the server's default timezone.
+    private static final ZoneOffset STORAGE_OFFSET = ZoneOffset.UTC;
     
     // Constructors
-    public Note() {
-        this.createdAt = LocalDateTime.now(TARGET_ZONE);
-        this.updatedAt = LocalDateTime.now(TARGET_ZONE);
-    }
+    public Note() {}
     
     public Note(String title, String content) {
         this();
@@ -71,25 +70,34 @@ public class Note {
         this.content = content;
     }
     
-    public LocalDateTime getCreatedAt() {
+    public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
     
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
     }
     
-    public LocalDateTime getUpdatedAt() {
+    public OffsetDateTime getUpdatedAt() {
         return updatedAt;
     }
     
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public void setUpdatedAt(OffsetDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    @PrePersist
+    public void prePersist() {
+        // Force UTC timestamp by using Instant.now() and converting to UTC OffsetDateTime
+        OffsetDateTime now = Instant.now().atOffset(ZoneOffset.UTC);
+        this.createdAt = now;
+        this.updatedAt = now;
     }
     
     @PreUpdate
     public void preUpdate() {
-        this.updatedAt = LocalDateTime.now(TARGET_ZONE);
+        // Force UTC timestamp by using Instant.now() and converting to UTC OffsetDateTime
+        this.updatedAt = Instant.now().atOffset(ZoneOffset.UTC);
     }
 
 }
