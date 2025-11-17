@@ -471,7 +471,24 @@ const MainLayout = () => {
                 darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-gray-50'
               }`}>
                 <p className="text-center">
-                  No Cardano wallets detected. Please install a wallet extension like Lace, Eternl, or Nami.
+                  No Cardano wallets detected. Please install a wallet extension like
+                  <a
+                    href="https://www.lace.io/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-red-500 underline mx-1"
+                  >
+                    Lace
+                  </a>
+                  and
+                  <a
+                    href="https://eternl.io/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-red-500 underline ml-1"
+                  >
+                    Eternl
+                  </a>.
                 </p>
               </div>
             ) : (
@@ -527,3 +544,4 @@ const MainLayout = () => {
 };
 
 export default MainLayout;
+
