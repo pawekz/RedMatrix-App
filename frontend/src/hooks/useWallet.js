@@ -61,25 +61,44 @@ export const useWallet = () => {
 
   // Detect available wallets and auto-reconnect if previously connected
   useEffect(() => {
-    if (window.cardano) {
-      const availableWallets = Object.keys(window.cardano);
+    const discoverWallets = () => {
+      if (!window.cardano) {
+        console.log('Waiting for Cardano wallets to initialize...');
+        return;
+      }
+
+      const availableWallets = Object.entries(window.cardano)
+        .filter(([walletName, walletObj]) => walletName !== 'isEnabled' && walletObj && typeof walletObj.enable === 'function')
+        .map(([walletName]) => walletName);
+
       setWallets(availableWallets);
-      console.log('Available wallets:', availableWallets);
-      
-      // Try to auto-reconnect to previously connected wallet
+      console.log('Detected Cardano wallets:', availableWallets);
+
       const savedWalletName = localStorage.getItem('connectedWallet');
-      if (savedWalletName && availableWallets.includes(savedWalletName)) {
+      if (savedWalletName && availableWallets.includes(savedWalletName) && !isConnected && !isConnecting) {
         console.log('Auto-reconnecting to wallet:', savedWalletName);
         connectWallet(savedWalletName).catch(err => {
           console.log('Auto-reconnect failed:', err);
-          // Clear saved wallet if auto-reconnect fails
           localStorage.removeItem('connectedWallet');
         });
       }
-    } else {
-      console.log('No Cardano wallets found');
-    }
-  }, [connectWallet]);
+    };
+
+    discoverWallets();
+    window.addEventListener('cardano#initialized', discoverWallets);
+    const intervalId = setInterval(() => {
+      if (!wallets.length) {
+        discoverWallets();
+      } else {
+        clearInterval(intervalId);
+      }
+    }, 1000);
+
+    return () => {
+      window.removeEventListener('cardano#initialized', discoverWallets);
+      clearInterval(intervalId);
+    };
+  }, [connectWallet, isConnected, isConnecting, wallets.length]);
 
   const disconnectWallet = () => {
     setWalletApi(null);
