@@ -33,7 +33,7 @@ public class NoteService {
         logger.info("Creating note with title: {}", note.getTitle());
         
         Note savedNote = noteRepository.save(note);
-        logger.info("Created note with ID: {}", savedNote.getId());
+        logger.info("Created note with ID: {} with txHash: {}", savedNote.getId(), savedNote.getLastTxHash());
         return savedNote;
     }
     
@@ -48,6 +48,17 @@ public class NoteService {
             Note note = optionalNote.get();
             note.setTitle(noteDetails.getTitle());
             note.setContent(noteDetails.getContent());
+            
+            // Update blockchain fields if provided
+            if (noteDetails.getContentHash() != null) {
+                note.setContentHash(noteDetails.getContentHash());
+            }
+            if (noteDetails.getLastTxHash() != null) {
+                note.setLastTxHash(noteDetails.getLastTxHash());
+            }
+            if (noteDetails.getOwnerWallet() != null) {
+                note.setOwnerWallet(noteDetails.getOwnerWallet());
+            }
             
             Note savedNote = noteRepository.save(note);
             logger.info("Successfully updated note with ID: {}", id);

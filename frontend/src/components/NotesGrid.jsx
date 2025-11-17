@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMode }) => {
   const displayNotes = notes && notes.length > 0 ? notes : [];
+  const [copiedTxHash, setCopiedTxHash] = useState(null);
 
   const manilaFormatter = React.useMemo(() => new Intl.DateTimeFormat('en-PH', {
     year: 'numeric',
@@ -48,6 +49,15 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
     }
     
     return Number.isNaN(date.getTime()) ? null : date.getTime();
+  };
+
+  const copyTxHash = (txHash) => {
+    navigator.clipboard.writeText(txHash).then(() => {
+      setCopiedTxHash(txHash);
+      setTimeout(() => setCopiedTxHash(null), 2000); // Clear after 2 seconds
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+    });
   };
 
   if (loading) {
@@ -100,15 +110,31 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
 
   return (
     <div className="flex-1 p-6">
-      <div className="mb-6">
-        <h2 className={`text-2xl font-bold mb-2 ${
-          darkMode ? 'text-white' : 'text-[#2D2D2D]'
-        }`}>
-          Your Notes
-        </h2>
-        <p className={darkMode ? 'text-gray-400' : 'text-[#666666]'}>
-          Manage and organize all your notes
-        </p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h2 className={`text-2xl font-bold mb-2 ${
+            darkMode ? 'text-white' : 'text-[#2D2D2D]'
+          }`}>
+            Your Notes
+          </h2>
+          <p className={darkMode ? 'text-gray-400' : 'text-[#666666]'}>
+            Manage and organize all your notes
+          </p>
+        </div>
+        
+        <button
+          onClick={onAddNote}
+          className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200 font-medium shadow-sm ${
+            darkMode
+              ? 'bg-red-600 hover:bg-red-700 text-white'
+              : 'bg-[#DC143C] hover:bg-[#B91C3C] text-white'
+          }`}
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Add New Note
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

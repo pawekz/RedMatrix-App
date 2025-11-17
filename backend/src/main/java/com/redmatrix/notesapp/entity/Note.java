@@ -27,6 +27,9 @@ public class Note {
     @Column(columnDefinition = "TEXT")
     private String content;
     
+    @Column(name = "owner_wallet")
+    private String ownerWallet;
+    
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
     
@@ -35,6 +38,12 @@ public class Note {
     
     // Persist timestamps in UTC regardless of the server's default timezone.
     private static final ZoneOffset STORAGE_OFFSET = ZoneOffset.UTC;
+    
+    @Column(name = "last_tx_hash")
+    private String lastTxHash;
+    
+    @Column(name = "content_hash")
+    private String contentHash;
     
     // Constructors
     public Note() {}
