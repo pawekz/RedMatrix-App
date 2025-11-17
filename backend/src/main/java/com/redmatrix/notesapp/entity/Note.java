@@ -79,6 +79,30 @@ public class Note {
         this.content = content;
     }
     
+    public String getOwnerWallet() {
+        return ownerWallet;
+    }
+
+    public void setOwnerWallet(String ownerWallet) {
+        this.ownerWallet = ownerWallet;
+    }
+
+    public String getLastTxHash() {
+        return lastTxHash;
+    }
+
+    public void setLastTxHash(String lastTxHash) {
+        this.lastTxHash = lastTxHash;
+    }
+
+    public String getContentHash() {
+        return contentHash;
+    }
+
+    public void setContentHash(String contentHash) {
+        this.contentHash = contentHash;
+    }
+    
     public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
