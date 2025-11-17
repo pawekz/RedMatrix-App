@@ -4,24 +4,51 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
   const displayNotes = notes && notes.length > 0 ? notes : [];
   const [copiedTxHash, setCopiedTxHash] = useState(null);
 
+  const manilaFormatter = React.useMemo(() => new Intl.DateTimeFormat('en-PH', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Asia/Manila',
+  }), []);
+
   const formatDateTime = (dateValue) => {
     if (!dateValue) {
       return '—';
     }
 
-    const date = new Date(dateValue);
+    // Ensure we're working with a proper Date object from the UTC timestamp
+    let date;
+    if (typeof dateValue === 'string') {
+      // If it's a string, parse it as UTC
+      date = new Date(dateValue + (dateValue.includes('Z') ? '' : 'Z'));
+    } else {
+      date = new Date(dateValue);
+    }
+    
     if (Number.isNaN(date.getTime())) {
       return dateValue;
     }
 
-    return date.toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
+    return manilaFormatter.format(date);
+  };
+
+  const getComparableTime = (value) => {
+    if (!value) {
+      return null;
+    }
+    
+    // Use the same UTC parsing logic as formatDateTime
+    let date;
+    if (typeof value === 'string') {
+      date = new Date(value + (value.includes('Z') ? '' : 'Z'));
+    } else {
+      date = new Date(value);
+    }
+    
+    return Number.isNaN(date.getTime()) ? null : date.getTime();
   };
 
   const copyTxHash = (txHash) => {
@@ -111,123 +138,76 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {displayNotes.map((note) => (
-          <div
-            key={note.id}
-            className={`group rounded-lg shadow-md border hover:shadow-lg transition-all duration-200 ${
-              darkMode
-                ? 'bg-gray-800 border-gray-700 hover:border-gray-600'
-                : 'bg-white border-[#F7CAC9]'
-            }`}
-          >
-            <div className="p-4">
-              <div className="flex items-start justify-between mb-3">
-                <h3 className={`text-lg font-semibold truncate flex-1 mr-2 ${
-                  darkMode ? 'text-white' : 'text-[#2D2D2D]'
-                }`}>
-                  {note.title}
-                </h3>
-                <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <button
-                    onClick={() => onEditNote && onEditNote(note)}
-                    className={`p-1 transition-colors duration-200 ${
-                      darkMode 
-                        ? 'text-red-400 hover:text-red-300' 
-                        : 'text-[#F75270] hover:text-[#DC143C]'
-                    }`}
-                    title="Edit Note"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
+        {displayNotes.map((note) => {
+          const createdStamp = getComparableTime(note.createdAt);
+          const updatedStamp = getComparableTime(note.updatedAt);
+          const showUpdated = createdStamp !== null && updatedStamp !== null && updatedStamp !== createdStamp;
 
-                  <button
-                    onClick={() => onDeleteNote && onDeleteNote(note)}
-                    className={`p-1 transition-colors duration-200 ${
-                      darkMode 
-                        ? 'text-red-400 hover:text-red-300' 
-                        : 'text-[#F75270] hover:text-[#DC143C]'
-                    }`}
-                    title="Delete Note"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
+          return (
+            <div
+              key={note.id}
+              className={`group rounded-lg shadow-md border hover:shadow-lg transition-all duration-200 ${
+                darkMode
+                  ? 'bg-gray-800 border-gray-700 hover:border-gray-600'
+                  : 'bg-white border-[#F7CAC9]'
+              }`}
+            >
+              <div className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className={`text-lg font-semibold truncate flex-1 mr-2 ${
+                    darkMode ? 'text-white' : 'text-[#2D2D2D]'
+                  }`}>
+                    {note.title}
+                  </h3>
+                  <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={() => onEditNote && onEditNote(note)}
+                      className={`p-1 transition-colors duration-200 ${
+                        darkMode 
+                          ? 'text-red-400 hover:text-red-300' 
+                          : 'text-[#F75270] hover:text-[#DC143C]'
+                      }`}
+                      title="Edit Note"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+
+                    <button
+                      onClick={() => onDeleteNote && onDeleteNote(note)}
+                      className={`p-1 transition-colors duration-200 ${
+                        darkMode 
+                          ? 'text-red-400 hover:text-red-300' 
+                          : 'text-[#F75270] hover:text-[#DC143C]'
+                      }`}
+                      title="Delete Note"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <p className={`text-sm mb-4 line-clamp-3 ${
-                darkMode ? 'text-gray-300' : 'text-[#666666]'
-              }`}>
-                {note.content}
-              </p>
+                <p className={`text-sm mb-4 line-clamp-3 ${
+                  darkMode ? 'text-gray-300' : 'text-[#666666]'
+                }`}>
+                  {note.content}
+                </p>
 
-              <div className={`flex flex-col space-y-1 text-xs ${
-                darkMode ? 'text-gray-500' : 'text-[#999999]'
-              }`}>
-                <div className="flex items-center justify-between">
+                <div className={`flex items-center justify-between text-xs ${
+                  darkMode ? 'text-gray-500' : 'text-[#999999]'
+                }`}>
                   <span>Created: {formatDateTime(note.createdAt)}</span>
-                  {note.updatedAt !== note.createdAt && (
+                  {showUpdated && (
                     <span>Updated: {formatDateTime(note.updatedAt)}</span>
                   )}
                 </div>
-                
-                {/* Blockchain Info */}
-                {note.lastTxHash && (
-                  <div className="flex items-center space-x-1 mt-1">
-                    <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    <span className={`text-xs ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
-                      On-chain
-                    </span>
-                    <a
-                      href={`https://preview.cardanoscan.io/transaction/${note.lastTxHash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`text-xs underline hover:no-underline ${
-                        darkMode ? 'text-blue-400' : 'text-blue-600'
-                      }`}
-                      title={note.lastTxHash}
-                    >
-                      View TX
-                    </a>
-                    <div className="relative">
-                      <button
-                        onClick={() => copyTxHash(note.lastTxHash)}
-                        className={`p-0.5 rounded transition-colors duration-200 ${
-                          darkMode 
-                            ? 'text-gray-400 hover:text-gray-200' 
-                            : 'text-gray-500 hover:text-gray-700'
-                        }`}
-                        title="Copy transaction hash"
-                      >
-                        {copiedTxHash === note.lastTxHash ? (
-                          <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        ) : (
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
-                        )}
-                      </button>
-                      {copiedTxHash === note.lastTxHash && (
-                        <span className={`absolute -top-6 left-1/2 transform -translate-x-1/2 px-2 py-0.5 text-xs rounded whitespace-nowrap ${
-                          darkMode ? 'bg-gray-700 text-white' : 'bg-gray-800 text-white'
-                        }`}>
-                          Copied!
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

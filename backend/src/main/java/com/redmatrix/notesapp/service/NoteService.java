@@ -1,6 +1,5 @@
 package com.redmatrix.notesapp.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,13 +32,6 @@ public class NoteService {
         validateNote(note);
         logger.info("Creating note with title: {}", note.getTitle());
         
-        LocalDateTime now = LocalDateTime.now();
-        note.setCreatedAt(now);
-        note.setUpdatedAt(now);
-        
-        // Blockchain fields are already set from the request body
-        // No need to modify them here
-        
         Note savedNote = noteRepository.save(note);
         logger.info("Created note with ID: {} with txHash: {}", savedNote.getId(), savedNote.getLastTxHash());
         return savedNote;
@@ -56,7 +48,6 @@ public class NoteService {
             Note note = optionalNote.get();
             note.setTitle(noteDetails.getTitle());
             note.setContent(noteDetails.getContent());
-            note.setUpdatedAt(LocalDateTime.now());
             
             // Update blockchain fields if provided
             if (noteDetails.getContentHash() != null) {
