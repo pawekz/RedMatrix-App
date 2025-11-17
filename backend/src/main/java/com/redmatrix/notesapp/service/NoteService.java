@@ -1,6 +1,5 @@
 package com.redmatrix.notesapp.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,10 +32,6 @@ public class NoteService {
         validateNote(note);
         logger.info("Creating note with title: {}", note.getTitle());
         
-        LocalDateTime now = LocalDateTime.now();
-        note.setCreatedAt(now);
-        note.setUpdatedAt(now);
-        
         Note savedNote = noteRepository.save(note);
         logger.info("Created note with ID: {}", savedNote.getId());
         return savedNote;
@@ -53,7 +48,6 @@ public class NoteService {
             Note note = optionalNote.get();
             note.setTitle(noteDetails.getTitle());
             note.setContent(noteDetails.getContent());
-            note.setUpdatedAt(LocalDateTime.now());
             
             Note savedNote = noteRepository.save(note);
             logger.info("Successfully updated note with ID: {}", id);
