@@ -1,4 +1,4 @@
-import { BlockfrostProvider, BrowserWallet, Transaction } from '@meshsdk/core';
+import { BrowserWallet, Transaction } from '@meshsdk/core';
 
 /**
  * Generate SHA-256 hash of content
@@ -22,11 +22,6 @@ export const createBlockchainTransaction = async (
   try {
     console.log('Creating blockchain transaction with metadata:', metadata);
     
-    // Initialize Blockfrost provider
-    const blockfrostProvider = new BlockfrostProvider(
-      import.meta.env.VITE_BLOCKFROST_PROJECT_ID
-    );
-
     // Find which wallet is connected
     let connectedWalletName = null;
     if (window.cardano) {
