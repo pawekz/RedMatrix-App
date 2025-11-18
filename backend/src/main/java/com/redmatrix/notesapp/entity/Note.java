@@ -36,9 +36,6 @@ public class Note {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
     
-    // Persist timestamps in UTC regardless of the server's default timezone.
-    private static final ZoneOffset STORAGE_OFFSET = ZoneOffset.UTC;
-    
     @Column(name = "last_tx_hash")
     private String lastTxHash;
     

@@ -24,6 +24,9 @@ public class NoteService {
     
     // Get note by ID
     public Optional<Note> getNoteById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Note ID cannot be null");
+        }
         return noteRepository.findById(id);
     }
     
@@ -39,6 +42,9 @@ public class NoteService {
     
     // Update existing note
     public Note updateNote(Long id, Note noteDetails) {
+        if (id == null) {
+            throw new IllegalArgumentException("Note ID cannot be null");
+        }
         validateNote(noteDetails);
         logger.info("Updating note with ID: {}", id);
         
@@ -71,6 +77,9 @@ public class NoteService {
     
     // Delete note
     public void deleteNote(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Note ID cannot be null");
+        }
         logger.info("Deleting note with ID: {}", id);
         
         if (noteRepository.existsById(id)) {
