@@ -164,15 +164,16 @@ Restart `npm run dev` after editing `.env`.
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| ❌ Cannot connect to DB | Ensure MySQL is running, credentials match, and `redmatrix_notes` database exists |
-| ❌ Port conflicts | Change `server.port` in backend properties or Vite dev server port via `vite.config.js` |
-| ❌ Maven/Java version | Confirm Project SDK is Java 17 and reload Maven |
-| ❌ Extensions not working (VS Code) | Reload VS Code window: `Ctrl+Shift+P` → `Developer: Reload Window` |
-| ❌ No wallets detected | Install Lace/Nami/Eternl, refresh the app, and confirm the wallet is on Preview Testnet |
-| ❌ Transaction failed | Verify you still have test ADA, the wallet is unlocked, and your Blockfrost key targets Preview |
-| ❌ Note actions stuck | The UI requires a connected wallet before calling backend APIs |
+| Issue                                                             | Solution                                                                                        |
+|-------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| ❌ Cannot connect to DB                                            | Ensure MySQL is running, credentials match, and `redmatrix_notes` database exists               |
+| ❌ Port conflicts                                                  | Change `server.port` in backend properties or Vite dev server port via `vite.config.js`         |
+| ❌ Maven/Java version                                              | Confirm Project SDK is Java 17 and reload Maven                                                 |
+| ❌ Extensions not working (VS Code)                                | Reload VS Code window: `Ctrl+Shift+P` → `Developer: Reload Window`                              |
+| ❌ No wallets detected                                             | Install Lace/Nami/Eternl, refresh the app, and confirm the wallet is on Preview Testnet         |
+| ❌ Transaction failed                                              | Verify you still have test ADA, the wallet is unlocked, and your Blockfrost key targets Preview |
+| ❌ Note actions stuck                                              | The UI requires a connected wallet before calling backend APIs                                  |
+| ❌ Wallet doesn't appear when creating / updating / deleting notes | Check network connection, change DNS Server to 8.8.8.8 or use Cloudflare WARP VPN               |
 
 ---
 
