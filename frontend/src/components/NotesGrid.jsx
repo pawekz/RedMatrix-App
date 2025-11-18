@@ -146,52 +146,66 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
           return (
             <div
               key={note.id}
-              className={`group rounded-lg shadow-md border hover:shadow-lg transition-all duration-200 ${
+              className={`group relative rounded-xl shadow-md border transition-all duration-300 cursor-pointer transform hover:scale-105 hover:-translate-y-2 ${
                 darkMode
-                  ? 'bg-gray-800 border-gray-700 hover:border-gray-600'
-                  : 'bg-white border-[#F7CAC9]'
+                  ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 hover:border-red-500 hover:shadow-2xl hover:shadow-red-500/20'
+                  : 'bg-white border-[#F7CAC9] hover:border-red-400 hover:shadow-2xl hover:shadow-red-300/30'
               }`}
             >
-              <div className="p-4">
+              {/* Glow effect on hover */}
+              <div className={`absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-red-600/10 to-transparent' 
+                  : 'bg-gradient-to-br from-red-100/50 to-transparent'
+              }`}></div>
+              
+              {/* Content */}
+              <div className="relative p-4">
                 <div className="flex items-start justify-between mb-3">
-                  <h3 className={`text-lg font-semibold truncate flex-1 mr-2 ${
-                    darkMode ? 'text-white' : 'text-[#2D2D2D]'
+                  <h3 className={`text-lg font-semibold truncate flex-1 mr-2 transition-colors duration-200 ${
+                    darkMode ? 'text-white group-hover:text-red-400' : 'text-[#2D2D2D] group-hover:text-red-600'
                   }`}>
                     {note.title}
                   </h3>
-                  <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
                     <button
-                      onClick={() => onEditNote && onEditNote(note)}
-                      className={`p-1 transition-colors duration-200 ${
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditNote && onEditNote(note);
+                      }}
+                      className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 ${
                         darkMode 
-                          ? 'text-red-400 hover:text-red-300' 
-                          : 'text-[#F75270] hover:text-[#DC143C]'
+                          ? 'text-red-400 hover:text-red-300 hover:bg-red-500/20' 
+                          : 'text-[#F75270] hover:text-white hover:bg-red-500'
                       }`}
                       title="Edit Note"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                     </button>
 
                     <button
-                      onClick={() => onDeleteNote && onDeleteNote(note)}
-                      className={`p-1 transition-colors duration-200 ${
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteNote && onDeleteNote(note);
+                      }}
+                      className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 ${
                         darkMode 
-                          ? 'text-red-400 hover:text-red-300' 
-                          : 'text-[#F75270] hover:text-[#DC143C]'
+                          ? 'text-red-400 hover:text-red-300 hover:bg-red-500/20' 
+                          : 'text-[#F75270] hover:text-white hover:bg-red-500'
                       }`}
                       title="Delete Note"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>
                   </div>
                 </div>
 
-                <p className={`text-sm mb-4 line-clamp-3 ${
-                  darkMode ? 'text-gray-300' : 'text-[#666666]'
+                <p className={`text-sm mb-4 line-clamp-3 transition-colors duration-200 ${
+                  darkMode ? 'text-gray-300 group-hover:text-gray-200' : 'text-[#666666] group-hover:text-gray-700'
                 }`}>
                   {note.content}
                 </p>
@@ -208,18 +222,19 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
                   
                   {/* Blockchain Info */}
                   {note.lastTxHash && (
-                    <div className="flex items-center space-x-1 mt-1">
+                    <div className="flex items-center space-x-1 mt-2 p-2 rounded-lg bg-green-500/10 border border-green-500/20">
                       <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span className={`text-xs ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                      <span className={`text-xs font-medium ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
                         On-chain
                       </span>
                       <a
                         href={`https://preview.cardanoscan.io/transaction/${note.lastTxHash}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`text-xs underline hover:no-underline ${
+                        onClick={(e) => e.stopPropagation()}
+                        className={`text-xs underline hover:no-underline font-medium ${
                           darkMode ? 'text-blue-400' : 'text-blue-600'
                         }`}
                         title={note.lastTxHash}
@@ -228,11 +243,14 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
                       </a>
                       <div className="relative">
                         <button
-                          onClick={() => copyTxHash(note.lastTxHash)}
-                          className={`p-0.5 rounded transition-colors duration-200 ${
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            copyTxHash(note.lastTxHash);
+                          }}
+                          className={`p-1 rounded transition-all duration-200 hover:scale-125 ${
                             darkMode 
-                              ? 'text-gray-400 hover:text-gray-200' 
-                              : 'text-gray-500 hover:text-gray-700'
+                              ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' 
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
                           }`}
                           title="Copy transaction hash"
                         >
@@ -247,7 +265,7 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
                           )}
                         </button>
                         {copiedTxHash === note.lastTxHash && (
-                          <span className={`absolute -top-6 left-1/2 transform -translate-x-1/2 px-2 py-0.5 text-xs rounded whitespace-nowrap ${
+                          <span className={`absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs rounded whitespace-nowrap shadow-lg ${
                             darkMode ? 'bg-gray-700 text-white' : 'bg-gray-800 text-white'
                           }`}>
                             Copied!
