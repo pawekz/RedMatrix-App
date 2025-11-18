@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../config/ApiConfig.jsx';
 
 const BlockfrostPlayground = ({ darkMode }) => {
   const [txHash, setTxHash] = useState('');
@@ -17,22 +18,17 @@ const BlockfrostPlayground = ({ darkMode }) => {
     setMetadata(null);
 
     try {
-      const projectId = import.meta.env.VITE_BLOCKFROST_PROJECT_ID;
-      
-      if (!projectId) {
-        throw new Error('Blockfrost Project ID not configured. Please set VITE_BLOCKFROST_PROJECT_ID in your .env file');
-      }
-
+      // Use backend endpoint instead of direct Blockfrost API call
       const response = await fetch(
-        `https://cardano-preview.blockfrost.io/api/v0/txs/${txHash}/metadata`,
-        {
-          headers: { project_id: projectId }
-        }
+        `${API_BASE_URL}/api/blockfrost/txs/${txHash}/metadata`
       );
 
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error('Transaction not found. Make sure the transaction hash is correct and exists on Preview Testnet.');
+        }
+        if (response.status === 503) {
+          throw new Error('Blockfrost Project ID not configured on the backend. Please set BLOCKFROST_PROJECT_ID environment variable.');
         }
         throw new Error(`Blockfrost API error: ${response.status} ${response.statusText}`);
       }
