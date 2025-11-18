@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import NotesGrid from './NotesGrid';
@@ -11,6 +11,7 @@ import {
   submitUpdateNoteToBlockchain,
   submitDeleteNoteToBlockchain,
 } from '../services/blockchainService';
+import { initBurst, render, resetConfetti } from '../utils/confetti';
 
 const MainLayout = () => {
   const [currentView, setCurrentView] = useState('notes'); // 'notes' or 'blockfrost'
@@ -26,6 +27,11 @@ const MainLayout = () => {
   const [isCrudSmokeTesting, setIsCrudSmokeTesting] = useState(false);
   const [crudTestStep, setCrudTestStep] = useState(null);
   const [crudTestErrorStep, setCrudTestErrorStep] = useState(null);
+  const [buttonState, setButtonState] = useState('ready');
+  const [buttonDisabled, setButtonDisabled] = useState(false);
+  const canvasRef = useRef(null);
+  const saveButtonRef = useRef(null);
+  const animationFrameRef = useRef(null);
 
   // Initialize wallet hook
   const {
@@ -106,10 +112,14 @@ const MainLayout = () => {
   const handleAddNote = () => {
     console.log('Add Note clicked');
     setNewNote({ title: '', content: '' });
+    setButtonState('ready');
+    setButtonDisabled(false);
     setShowNotepad(true);
   };
 
   const handleSaveNote = async () => {
+    if (buttonDisabled) return;
+
     // Check if wallet is connected
     if (!isConnected || !walletApi) {
       alert('Please connect your wallet first to save notes to blockchain');
@@ -123,6 +133,8 @@ const MainLayout = () => {
       return;
     }
 
+    setButtonDisabled(true);
+    setButtonState('loading');
     setBlockchainLoading(true);
 
     try {
@@ -162,10 +174,22 @@ const MainLayout = () => {
         
         const updatedNotes = notes.map((n) => (n.id === updatedNote.id ? updatedNote : n));
         setNotes(updatedNotes);
-        setShowNotepad(false);
-        setNewNote({ title: '', content: '' });
-        setEditingNote(null);
-        alert('Note updated successfully on blockchain!');
+        
+        // Trigger success animation
+        setButtonState('complete');
+        setTimeout(() => {
+          if (canvasRef.current && saveButtonRef.current) {
+            initBurst(canvasRef.current, saveButtonRef.current);
+          }
+          setTimeout(() => {
+            setShowNotepad(false);
+            setNewNote({ title: '', content: '' });
+            setEditingNote(null);
+            setButtonState('ready');
+            setButtonDisabled(false);
+            resetConfetti();
+          }, 4000);
+        }, 320);
       } else {
         // CREATE operation - Two-phase approach
         // Phase 1: Save to database first to get the note ID
@@ -226,22 +250,85 @@ const MainLayout = () => {
         
         const updatedNotes = [finalNote, ...notes];
         setNotes(updatedNotes);
-        setShowNotepad(false);
-        setNewNote({ title: '', content: '' });
-        alert('Note created successfully on blockchain!');
+        
+        // Trigger success animation
+        setButtonState('complete');
+        setTimeout(() => {
+          if (canvasRef.current && saveButtonRef.current) {
+            initBurst(canvasRef.current, saveButtonRef.current);
+          }
+          setTimeout(() => {
+            setShowNotepad(false);
+            setNewNote({ title: '', content: '' });
+            setButtonState('ready');
+            setButtonDisabled(false);
+            resetConfetti();
+          }, 4000);
+        }, 320);
       }
     } catch (error) {
       console.error('Error saving note:', error);
       alert(`Failed to save note: ${error.message}`);
+      setButtonState('ready');
+      setButtonDisabled(false);
     } finally {
       setBlockchainLoading(false);
     }
   };
 
+  // Initialize button text animation
+  useEffect(() => {
+    if (showNotepad && saveButtonRef.current) {
+      const textElements = saveButtonRef.current.querySelectorAll('.button-text');
+      textElements.forEach((element) => {
+        const characters = element.innerText.split('');
+        let characterHTML = '';
+        characters.forEach((letter, index) => {
+          characterHTML += `<span class="char${index}" style="--d:${index * 30}ms; --dr:${(characters.length - index - 1) * 30}ms;">${letter}</span>`;
+        });
+        element.innerHTML = characterHTML;
+      });
+    }
+  }, [showNotepad]);
+
+  // Setup canvas
+  useEffect(() => {
+    if (showNotepad && canvasRef.current) {
+      const canvas = canvasRef.current;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const handleResize = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      };
+
+      window.addEventListener('resize', handleResize);
+
+      // Start render loop
+      if (saveButtonRef.current) {
+        const renderLoop = () => {
+          render(canvas, saveButtonRef.current);
+          animationFrameRef.current = requestAnimationFrame(renderLoop);
+        };
+        renderLoop();
+      }
+
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+        }
+      };
+    }
+  }, [showNotepad]);
+
   const handleEditNote = (note) => {
     console.log('Edit Note clicked:', note);
     setEditingNote(note);
     setNewNote({ title: note.title, content: note.content });
+    setButtonState('ready');
+    setButtonDisabled(false);
     setShowNotepad(true);
   };
 
@@ -527,45 +614,47 @@ const MainLayout = () => {
 
       {/* Modal for Notepad */}
       {showNotepad && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-md z-50 p-4">
-          <div className={`w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col overflow-hidden transform transition-all ${
-            darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'
-          }`}>
-            {/* Header */}
-            <div className={`px-6 py-4 border-b flex items-center justify-between ${
-              darkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-white/50'
+        <>
+          <canvas ref={canvasRef} id="confetti-canvas"></canvas>
+          <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-md z-50 p-4">
+            <div className={`w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col overflow-hidden transform transition-all ${
+              darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'
             }`}>
-              <div className="flex items-center space-x-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                  darkMode ? 'bg-red-600/20' : 'bg-red-100'
-                }`}>
-                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              {/* Header */}
+              <div className={`px-6 py-4 border-b flex items-center justify-between ${
+                darkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-white/50'
+              }`}>
+                <div className="flex items-center space-x-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    darkMode ? 'bg-red-600/20' : 'bg-red-100'
+                  }`}>
+                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {editingNote ? 'Edit Note' : 'Create New Note'}
+                    </h2>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {editingNote ? 'Update your note details' : 'Write something amazing'}
+                    </p>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => setShowNotepad(false)}
+                  className={`p-2 rounded-lg transition-all hover:rotate-90 duration-300 ${
+                    darkMode 
+                      ? 'hover:bg-gray-700 text-gray-400 hover:text-white' 
+                      : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                </div>
-                <div>
-                  <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {editingNote ? 'Edit Note' : 'Create New Note'}
-                  </h2>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {editingNote ? 'Update your note details' : 'Write something amazing'}
-                  </p>
-                </div>
+                </button>
               </div>
-              
-              <button
-                onClick={() => setShowNotepad(false)}
-                className={`p-2 rounded-lg transition-all hover:rotate-90 duration-300 ${
-                  darkMode 
-                    ? 'hover:bg-gray-700 text-gray-400 hover:text-white' 
-                    : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'
-                }`}
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
 
             {/* Form Content */}
             <div className="px-6 py-6 flex-1 space-y-5">
@@ -661,28 +750,39 @@ const MainLayout = () => {
                   Cancel
                 </button>
                 <button
+                  ref={saveButtonRef}
                   onClick={handleSaveNote}
-                  disabled={blockchainLoading || !newNote.title.trim() || !newNote.content.trim()}
-                  className="px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-medium hover:from-red-700 hover:to-red-800 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-red-500/30 flex items-center space-x-2"
+                  disabled={buttonDisabled || !newNote.title.trim() || !newNote.content.trim()}
+                  className={`save-note-button ${buttonState} px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-medium hover:from-red-700 hover:to-red-800 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-red-500/30`}
                 >
-                  {blockchainLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                      <span>Processing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span>{editingNote ? 'Update Note' : 'Save Note'}</span>
-                    </>
-                  )}
+                  <div className="submitMessage message">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 12.2">
+                      <polyline stroke="currentColor" points="2,7.1 6.5,11.1 11,7.1 "/>
+                      <line stroke="currentColor" x1="6.5" y1="1.2" x2="6.5" y2="10.3"/>
+                    </svg>
+                    <span className="button-text">Save Note</span>
+                  </div>
+
+                  <div className="loadingMessage message">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 17">
+                      <circle className="loadingCircle" cx="2.2" cy="10" r="1.6"/>
+                      <circle className="loadingCircle" cx="9.5" cy="10" r="1.6"/>
+                      <circle className="loadingCircle" cx="16.8" cy="10" r="1.6"/>
+                    </svg>
+                  </div>
+
+                  <div className="successMessage message">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 11">
+                      <polyline stroke="currentColor" points="1.4,5.8 5.1,9.5 11.6,2.1 "/>
+                    </svg>
+                    <span className="button-text">Success</span>
+                  </div>
                 </button>
               </div>
             </div>
           </div>
         </div>
+        </>
       )}
 
       {/* Wallet Connection Modal */}

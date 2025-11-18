@@ -32,3 +32,159 @@
     transform: translateX(0);
   }
 }
+
+/* Button Animation Styles */
+@keyframes loading {
+  0%   { cy: 10; }
+  25%  { cy: 3; }
+  50%  { cy: 10; }
+}
+
+#confetti-canvas {
+  height: 100vh;
+  pointer-events: none;
+  position: fixed;
+  width: 100%;
+  z-index: 9999;
+  top: 0;
+  left: 0;
+}
+
+.save-note-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.save-note-button::before {
+  background: transparent;
+  border-radius: 50px;
+  content: '';
+  display: block;
+  height: 100%;
+  margin: 0 auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  transition: width .2s cubic-bezier(.39,1.86,.64,1) .3s;
+  width: 100%;
+  z-index: 0;
+}
+
+.save-note-button.ready .submitMessage svg {
+  opacity: 1;
+  top: 1px;
+  transition: top .4s ease 600ms, opacity .3s linear 600ms;
+}
+
+.save-note-button.ready .submitMessage .button-text span {
+  top: 0;
+  opacity: 1;
+  transition: all .2s ease calc(var(--dr) + 600ms);
+}
+
+.save-note-button.loading::before {
+  transition: width .3s ease;
+  width: 80%;
+}
+
+.save-note-button.loading .loadingMessage {
+  opacity: 1;
+}
+
+.save-note-button.loading .loadingCircle {
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+  animation-name: loading;
+  cy: 10;
+}
+
+.save-note-button.complete .submitMessage svg {
+  top: -30px;
+  transition: none;
+}
+
+.save-note-button.complete .submitMessage .button-text span {
+  top: -8px;
+  transition: none;
+}
+
+.save-note-button.complete .loadingMessage {
+  top: 80px;
+}
+
+.save-note-button.complete .successMessage .button-text span {
+  left: 0;
+  opacity: 1;
+  transition: all .2s ease calc(var(--d) + 1000ms);
+}
+
+.save-note-button.complete .successMessage svg { 
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset .3s ease-in-out 1.4s;
+}
+
+.button-text span {
+  opacity: 0;
+  position: relative;
+}
+
+.message {
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  z-index: 1;
+}
+
+.message svg {
+  display: inline-block;
+  fill: none;
+  margin-right: 5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.submitMessage .button-text span {
+  top: 8px;
+  transition: all .2s ease var(--d);
+}
+
+.submitMessage svg {
+  color: #5c86ff;
+  margin-left: -1px;
+  opacity: 0;
+  position: relative;
+  top: 30px;
+  transition: top .4s ease, opacity .3s linear;
+  width: 14px;
+}
+
+.loadingMessage {
+  opacity: 0;
+  transition: opacity .3s linear .3s, top .4s cubic-bezier(.22,0,.41,-0.57);
+}
+
+.loadingMessage svg {
+  fill: #5c86ff;
+  margin: 0;
+  width: 22px;
+}
+
+.successMessage .button-text span {
+  left: 5px;
+  transition: all .2s ease var(--dr);
+}
+
+.successMessage svg {
+  color: #5cffa1;
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  transition: stroke-dashoffset .3s ease-in-out;
+  width: 14px;
+}
+
+.loadingCircle:nth-child(2) { animation-delay: .1s; }
+.loadingCircle:nth-child(3) { animation-delay: .2s; }
