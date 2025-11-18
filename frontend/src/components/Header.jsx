@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Header = ({ searchTerm, onSearchChange, darkMode, onToggleDarkMode }) => {
+const Header = ({ searchTerm, onSearchChange, darkMode, onToggleDarkMode, showCrudTestButton, onRunCrudSmokeTest, isCrudSmokeTesting }) => {
   return (
     <header className="bg-gradient-to-r from-[#DC143C] to-[#F75270] shadow-lg">
       <div className="w-full">
@@ -47,6 +47,16 @@ const Header = ({ searchTerm, onSearchChange, darkMode, onToggleDarkMode }) => {
           </div>
           
           <div className="flex items-center space-x-4 pr-4">
+            {showCrudTestButton && (
+              <button
+                onClick={onRunCrudSmokeTest}
+                disabled={isCrudSmokeTesting}
+                className="p-2 text-xs bg-white/20 text-white rounded-lg hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                {isCrudSmokeTesting ? 'Running CRUD test...' : 'CRUD Smoke Test'}
+              </button>
+            )}
+            
             {/* Dark Mode Toggle Button */}
             <button
               onClick={onToggleDarkMode}

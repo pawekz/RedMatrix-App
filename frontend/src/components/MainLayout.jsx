@@ -23,7 +23,10 @@ const MainLayout = () => {
   const [loading, setLoading] = useState(true);
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [blockchainLoading, setBlockchainLoading] = useState(false);
-  
+  const [isCrudSmokeTesting, setIsCrudSmokeTesting] = useState(false);
+  const [crudTestStep, setCrudTestStep] = useState(null);
+  const [crudTestErrorStep, setCrudTestErrorStep] = useState(null);
+
   // Initialize wallet hook
   const {
     wallets,
@@ -37,7 +40,7 @@ const MainLayout = () => {
     connectWallet,
     disconnectWallet,
   } = useWallet();
-  
+
   // Initialize darkMode from localStorage, default to false if not found
   const [darkMode, setDarkMode] = useState(() => {
     const savedDarkMode = localStorage.getItem('darkMode');
@@ -289,6 +292,84 @@ const MainLayout = () => {
     }
   };
 
+  const runCrudSmokeTest = async () => {
+    if (!isConnected || !walletApi) {
+      alert('Please connect your wallet first to run the CRUD smoke test');
+      setShowWalletModal(true);
+      return;
+    }
+
+    setIsCrudSmokeTesting(true);
+    setCrudTestErrorStep(null);
+    setCrudTestStep('create');
+    let currentStep = 'create';
+
+    try {
+      const timestamp = new Date().toISOString();
+      const baseTitle = 'Smoke Test Note';
+
+      const createBody = {
+        title: `${baseTitle} - create`,
+        content: `Created at ${timestamp}`,
+        ownerWallet: walletAddress,
+      };
+
+      const createRes = await fetch(noteUrl(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(createBody),
+      });
+
+      if (!createRes.ok) {
+        throw new Error(`Create failed: ${createRes.status}`);
+      }
+
+      const createdNote = await createRes.json();
+
+      currentStep = 'update';
+      setCrudTestStep('update');
+      const updateBody = {
+        title: `${baseTitle} - updated`,
+        content: `Updated at ${timestamp}`,
+        ownerWallet: walletAddress,
+      };
+
+      const updateRes = await fetch(noteUrl(createdNote.id), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateBody),
+      });
+
+      if (!updateRes.ok) {
+        throw new Error(`Update failed: ${updateRes.status}`);
+      }
+
+      currentStep = 'delete';
+      setCrudTestStep('delete');
+      const deleteRes = await fetch(noteUrl(createdNote.id), {
+        method: 'DELETE',
+      });
+
+      if (!deleteRes.ok) {
+        throw new Error(`Delete failed: ${deleteRes.status}`);
+      }
+
+      setCrudTestStep('done');
+    } catch (error) {
+      console.error('CRUD smoke test failed:', error);
+      setCrudTestStep(currentStep);
+      setCrudTestErrorStep(currentStep);
+    } finally {
+      setIsCrudSmokeTesting(false);
+    }
+  };
+
+  const crudTestSteps = [
+    { id: 'create', label: 'Create test note' },
+    { id: 'update', label: 'Update test note' },
+    { id: 'delete', label: 'Delete test note' },
+  ];
+
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
       darkMode ? 'bg-gray-900' : 'bg-[#FDEBD0]'
@@ -298,6 +379,9 @@ const MainLayout = () => {
         onSearchChange={handleSearchChange}
         darkMode={darkMode}
         onToggleDarkMode={toggleDarkMode}
+        showCrudTestButton={isConnected}
+        onRunCrudSmokeTest={runCrudSmokeTest}
+        isCrudSmokeTesting={isCrudSmokeTesting}
       />
 
       {/* Wallet Connection Banner */}
@@ -355,6 +439,65 @@ const MainLayout = () => {
               <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                 Please confirm in your wallet
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {crudTestStep && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 flex items-center justify-center">
+          <div className={`w-[360px] p-5 rounded-lg shadow-xl ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}>
+            <h2 className="text-lg font-semibold mb-3">CRUD Smoke Test</h2>
+            <p className={`text-xs mb-3 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Running a quick create → update → delete check against the notes API.
+            </p>
+            <div className="space-y-2 mb-4">
+              {crudTestSteps.map((step) => {
+                const order = ['create', 'update', 'delete'];
+                const isCurrent = crudTestStep === step.id && isCrudSmokeTesting;
+                const isCompleted =
+                  crudTestStep === 'done' ||
+                  order.indexOf(step.id) < order.indexOf(crudTestStep || '');
+                const isError = crudTestErrorStep === step.id;
+
+                return (
+                  <div key={step.id} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center space-x-2">
+                      {isError ? (
+                        <span className="flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-600">
+                          &#x2717;
+                        </span>
+                      ) : isCurrent ? (
+                        <span className="flex items-center justify-center w-5 h-5">
+                          <span className="w-4 h-4 border-2 border-t-transparent border-red-500 rounded-full animate-spin" />
+                        </span>
+                      ) : isCompleted ? (
+                        <span className="flex items-center justify-center w-5 h-5 rounded-full bg-green-100 text-green-600">
+                          &#x2713;
+                        </span>
+                      ) : (
+                        <span className={`w-2 h-2 rounded-full ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`} />
+                      )}
+                      <span>{step.label}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => {
+                  setCrudTestStep(null);
+                  setCrudTestErrorStep(null);
+                }}
+                className={`px-3 py-1.5 text-xs rounded ${
+                  darkMode
+                    ? 'bg-gray-700 text-white hover:bg-gray-600'
+                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                }`}
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
