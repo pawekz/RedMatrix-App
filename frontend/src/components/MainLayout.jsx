@@ -384,55 +384,159 @@ const MainLayout = () => {
 
       {/* Modal for Notepad */}
       {showNotepad && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
-          <div className={`w-[500px] h-[500px] max-w-[50%] max-h-[50%] p-4 rounded shadow-lg flex flex-col ${
-            darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+        <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-md z-50 p-4">
+          <div className={`w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col overflow-hidden transform transition-all ${
+            darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'
           }`}>
-            <h2 className="text-xl font-bold mb-4">
-              {editingNote ? 'Edit Note' : 'New Note'}
-            </h2>
-
-            <input
-              type="text"
-              value={newNote.title}
-              onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
-              placeholder="Title"
-              className={`w-full border rounded px-2 py-1 mb-2 ${
-                darkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                  : 'bg-white border-gray-300 text-gray-900'
-              }`}
-            />
-
-            <textarea
-              value={newNote.content}
-              onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
-              placeholder="Write your note here..."
-              className={`flex-1 w-full border rounded p-2 resize-none ${
-                darkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                  : 'bg-white border-gray-300 text-gray-900'
-              }`}
-            />
-
-            <div className="flex justify-end mt-2 space-x-2">
+            {/* Header */}
+            <div className={`px-6 py-4 border-b flex items-center justify-between ${
+              darkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-white/50'
+            }`}>
+              <div className="flex items-center space-x-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                  darkMode ? 'bg-red-600/20' : 'bg-red-100'
+                }`}>
+                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {editingNote ? 'Edit Note' : 'Create New Note'}
+                  </h2>
+                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {editingNote ? 'Update your note details' : 'Write something amazing'}
+                  </p>
+                </div>
+              </div>
+              
               <button
                 onClick={() => setShowNotepad(false)}
-                className={`px-3 py-1 rounded ${
+                className={`p-2 rounded-lg transition-all hover:rotate-90 duration-300 ${
                   darkMode 
-                    ? 'bg-gray-600 text-white hover:bg-gray-500' 
-                    : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                    ? 'hover:bg-gray-700 text-gray-400 hover:text-white' 
+                    : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'
                 }`}
               >
-                Cancel
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
-              <button
-                onClick={handleSaveNote}
-                disabled={blockchainLoading}
-                className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {blockchainLoading ? 'Processing...' : (editingNote ? 'Update' : 'Save')}
-              </button>
+            </div>
+
+            {/* Form Content */}
+            <div className="px-6 py-6 flex-1 space-y-5">
+              {/* Title Input */}
+              <div className="space-y-2">
+                <label className={`block text-sm font-semibold ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  Title
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={newNote.title}
+                    onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
+                    placeholder="Enter note title..."
+                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50 ${
+                      darkMode 
+                        ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-red-500' 
+                        : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-red-500'
+                    }`}
+                  />
+                  <div className={`absolute right-3 top-3 ${
+                    darkMode ? 'text-gray-500' : 'text-gray-400'
+                  }`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Content Textarea */}
+              <div className="space-y-2 flex-1 flex flex-col">
+                <label className={`block text-sm font-semibold ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  Content
+                </label>
+                <textarea
+                  value={newNote.content}
+                  onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
+                  placeholder="Start writing your note here..."
+                  rows="10"
+                  className={`flex-1 w-full px-4 py-3 rounded-xl border-2 resize-none transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50 ${
+                    darkMode 
+                      ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-red-500' 
+                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-red-500'
+                  }`}
+                />
+                <div className={`flex items-center justify-between text-xs ${
+                  darkMode ? 'text-gray-400' : 'text-gray-500'
+                }`}>
+                  <span>{newNote.content.length} characters</span>
+                  <span className="flex items-center space-x-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Saved to blockchain</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className={`px-6 py-4 border-t flex items-center justify-between ${
+              darkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'
+            }`}>
+              <div className="flex items-center space-x-2">
+                <div className={`px-3 py-1.5 rounded-lg text-sm flex items-center space-x-2 ${
+                  darkMode ? 'bg-gray-700 text-gray-300' : 'bg-white text-gray-600 border border-gray-200'
+                }`}>
+                  <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                  <span className="font-medium">Blockchain Enabled</span>
+                </div>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    setShowNotepad(false);
+                    setEditingNote(null);
+                    setNewNote({ title: '', content: '' });
+                  }}
+                  className={`px-5 py-2.5 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 ${
+                    darkMode 
+                      ? 'bg-gray-700 text-white hover:bg-gray-600' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveNote}
+                  disabled={blockchainLoading || !newNote.title.trim() || !newNote.content.trim()}
+                  className="px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-medium hover:from-red-700 hover:to-red-800 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-red-500/30 flex items-center space-x-2"
+                >
+                  {blockchainLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>{editingNote ? 'Update Note' : 'Save Note'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
