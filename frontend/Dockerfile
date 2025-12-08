@@ -1,7 +1,7 @@
 FROM node:24-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --registry https://registry.npmjs.org/ --maxsockets 3
+RUN npm ci --legacy-peer-deps --registry https://registry.npmjs.org/ --maxsockets 3
 COPY . .
 
 # Set production environment variable for build - use ARG to accept build-time variables
