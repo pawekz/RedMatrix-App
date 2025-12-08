@@ -13,14 +13,40 @@ export const generateContentHash = async (content) => {
 };
 
 /**
+ * Format content for Cardano metadata
+ * Cardano metadata strings cannot exceed 64 bytes
+ * This function chunks long content into 64-character pieces
+ */
+export const formatContent = (content) => {
+  // Case 1: Short string (fits in one chunk)
+  if (content.length <= 64) {
+    return content;
+  }
+
+  // Case 2: Long string (needs splitting)
+  // Regex splits the string every 64 characters
+  const chunks = content.match(/.{1,64}/g) || [];
+  return chunks; // Return as array for Mesh SDK metadata
+};
+
+/**
  * Create blockchain transaction with metadata
  */
 export const createBlockchainTransaction = async (
   walletApi,
-  metadata
+  metadata,
+  targetAddress,
+  lovelaceAmount
 ) => {
   try {
     console.log('Creating blockchain transaction with metadata:', metadata);
+    console.log('Target address:', targetAddress);
+    console.log('Lovelace amount:', lovelaceAmount);
+    
+    // Validate required parameters
+    if (!metadata) {
+      throw new Error('Metadata is required');
+    }
     
     // Find which wallet is connected
     let connectedWalletName = null;
@@ -54,6 +80,26 @@ export const createBlockchainTransaction = async (
 
     console.log('Using wallet:', connectedWalletName);
     
+    // For delete operations, target address and amount can be optional
+    // If not provided, we'll create a minimal transaction to self
+    if (!targetAddress || !lovelaceAmount) {
+      console.log('Target address or amount not provided, creating minimal transaction to self');
+      
+      // Use BrowserWallet to get proper bech32 address
+      const { BrowserWallet } = await import('@meshsdk/core');
+      const tempBrowserWallet = await BrowserWallet.enable(connectedWalletName);
+      const usedAddresses = await tempBrowserWallet.getUsedAddresses();
+      targetAddress = targetAddress || usedAddresses[0]; // Use bech32 address
+      lovelaceAmount = lovelaceAmount || '2000000'; // Default 2 ADA for delete (to meet minimum)
+    }
+    
+    if (!targetAddress) {
+      throw new Error('Target address is required');
+    }
+    if (!lovelaceAmount || lovelaceAmount <= 0) {
+      throw new Error('Valid lovelace amount is required');
+    }
+    
     // Create BrowserWallet instance - this wraps the CIP-30 wallet API
     const browserWallet = await BrowserWallet.enable(connectedWalletName);
     console.log('BrowserWallet instance created');
@@ -66,13 +112,25 @@ export const createBlockchainTransaction = async (
     // Build transaction using Mesh Transaction builder with BrowserWallet as initiator
     const tx = new Transaction({ initiator: browserWallet });
     
-    // Add a minimal output to own address (required for valid Cardano transaction)
-    // The funds will be returned to wallet minus the transaction fee
-    console.log('Adding minimal output to own address...');
+    // Send payment to target address
+    console.log('Sending payment to target address:', targetAddress);
     tx.sendLovelace(
-      walletAddressBech32, // Use bech32 address, not hex
-      '1000000' // 1 ADA in lovelace
+      targetAddress,
+      lovelaceAmount.toString()
     );
+    
+    // Set your own address as the change address
+    // Any remaining funds after fees and payment will return here
+    // Skip if target is the same as change address (delete operations)
+    if (targetAddress !== walletAddressBech32) {
+      console.log('Setting change address to own wallet:', walletAddressBech32);
+      tx.sendLovelace(
+        walletAddressBech32,
+        '0' // Mesh SDK will automatically calculate and send change
+      );
+    } else {
+      console.log('Target is same as change address, skipping duplicate output');
+    }
     
     // Create metadata for the transaction
     // Note: Cardano metadata has a 64-byte limit per string value
@@ -94,11 +152,12 @@ export const createBlockchainTransaction = async (
     }
     
     const txMetadata = {
-      action: metadata.action,
+      action: metadata.action || 'UNKNOWN',
       noteId: metadata.noteId ? metadata.noteId.toString() : 'new',
-      contentHash: metadata.contentHash,
-      owner: ownerMetadata,
-      timestamp: metadata.timestamp.toString(),
+      content: metadata.content ? formatContent(metadata.content) : '',
+      contentHash: metadata.contentHash || '',
+      owner: ownerMetadata || '',
+      timestamp: metadata.timestamp ? metadata.timestamp.toString() : Date.now().toString(),
     };
     
     console.log('Metadata created:', txMetadata);
@@ -136,6 +195,8 @@ export const submitCreateNoteToBlockchain = async (
   walletAddress,
   noteContent,
   noteTitle,
+  targetAddress,
+  lovelaceAmount,
   noteId = null // Optional: real note ID from database
 ) => {
   try {
@@ -144,6 +205,7 @@ export const submitCreateNoteToBlockchain = async (
     const metadata = {
       action: 'CREATE',
       noteId: noteId, // Use the real note ID if provided
+      content: noteContent,
       contentHash,
       owner: walletAddress,
       timestamp: Date.now(),
@@ -170,7 +232,9 @@ export const submitUpdateNoteToBlockchain = async (
   walletApi,
   walletAddress,
   noteId,
-  noteContent
+  noteContent,
+  targetAddress,
+  lovelaceAmount
 ) => {
   try {
     const contentHash = await generateContentHash(noteContent);
@@ -178,6 +242,7 @@ export const submitUpdateNoteToBlockchain = async (
     const metadata = {
       action: 'UPDATE',
       noteId,
+      content: noteContent,
       contentHash,
       owner: walletAddress,
       timestamp: Date.now(),
@@ -202,7 +267,9 @@ export const submitDeleteNoteToBlockchain = async (
   walletApi,
   walletAddress,
   noteId,
-  noteContent
+  noteContent,
+  targetAddress = null, // Optional
+  lovelaceAmount = null // Optional
 ) => {
   try {
     const contentHash = await generateContentHash(noteContent);
