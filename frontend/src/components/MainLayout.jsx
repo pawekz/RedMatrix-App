@@ -3,6 +3,7 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import NotesGrid from './NotesGrid';
 import BlockfrostPlayground from './BlockfrostPlayground';
+import TextEditor from './TextEditor';
 import ApiTest from './ApiTest';
 import { noteUrl } from '../config/ApiConfig.jsx';
 import { useWallet } from '../hooks/useWallet';
@@ -28,6 +29,7 @@ const MainLayout = () => {
   const [isCrudSmokeTesting, setIsCrudSmokeTesting] = useState(false);
   const [crudTestStep, setCrudTestStep] = useState(null);
   const [crudTestErrorStep, setCrudTestErrorStep] = useState(null);
+  const [showAdditionalSettings, setShowAdditionalSettings] = useState(false); // New state for dropdown
 
   // Initialize wallet hook
   const {
@@ -110,6 +112,7 @@ const MainLayout = () => {
     setNewNote({ title: '', content: '' });
     setTargetAddress('');
     setLovelaceAmount('1000000');
+    setShowAdditionalSettings(false); // Reset dropdown state
     setShowNotepad(true);
   };
 
@@ -188,6 +191,7 @@ const MainLayout = () => {
         setTargetAddress('');
         setLovelaceAmount('1000000');
         setEditingNote(null);
+        setShowAdditionalSettings(false); // Reset dropdown
         alert('Note updated successfully on blockchain!');
       } else {
         // CREATE operation - Two-phase approach
@@ -255,6 +259,7 @@ const MainLayout = () => {
         setNewNote({ title: '', content: '' });
         setTargetAddress('');
         setLovelaceAmount('1000000');
+        setShowAdditionalSettings(false); // Reset dropdown
         alert('Note created successfully on blockchain!');
       }
     } catch (error) {
@@ -269,6 +274,7 @@ const MainLayout = () => {
     console.log('Edit Note clicked:', note);
     setEditingNote(note);
     setNewNote({ title: note.title, content: note.content });
+    setShowAdditionalSettings(false); // Reset dropdown state
     setShowNotepad(true);
   };
 
@@ -531,13 +537,13 @@ const MainLayout = () => {
         </div>
       )}
 
-      <div className="flex">
+      <div className="flex flex-1 overflow-hidden">
         <Sidebar 
           currentView={currentView}
           onNavigate={handleNavigate}
           darkMode={darkMode}
         />
-        <main className="flex-1 min-h-[calc(100vh-64px)]">
+        <main className="flex-1 h-[calc(100vh-112px)] overflow-y-auto">
           {currentView === 'notes' ? (
             <NotesGrid 
               notes={filteredNotes}
@@ -556,7 +562,7 @@ const MainLayout = () => {
       {/* Modal for Notepad */}
       {showNotepad && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-md z-50 p-4">
-          <div className={`w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col overflow-hidden transform transition-all ${
+          <div className={`w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col overflow-hidden transform transition-all max-h-[90vh] ${
             darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'
           }`}>
             {/* Header */}
@@ -596,7 +602,7 @@ const MainLayout = () => {
             </div>
 
             {/* Form Content */}
-            <div className="px-6 py-6 flex-1 space-y-5">
+            <div className="px-6 py-6 flex-1 space-y-5 overflow-y-auto">
               {/* Title Input */}
               <div className="space-y-2">
                 <label className={`block text-sm font-semibold ${
@@ -633,9 +639,11 @@ const MainLayout = () => {
                 }`}>
                   Content
                 </label>
-                <textarea
+                <TextEditor
+                  key={editingNote ? `editor-${editingNote.id}` : 'editor-new'}
                   value={newNote.content}
-                  onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
+                  onChange={(content) => setNewNote({ ...newNote, content })}
+                  darkMode={darkMode}
                   placeholder="Start writing your note here..."
                   rows="6"
                   className={`flex-1 w-full px-4 py-3 rounded-xl border-2 resize-none transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50 ${
@@ -646,46 +654,159 @@ const MainLayout = () => {
                 />
               </div>
 
-              {/* Target Address */}
-              <div className="space-y-2">
-                <label className={`block text-sm font-semibold ${
-                  darkMode ? 'text-gray-300' : 'text-gray-700'
+              {/* Character Count Info */}
+              <div className="flex items-center justify-between text-xs mt-2">
+                <span className={darkMode ? 'text-gray-400' : 'text-gray-500'}>
+                  {newNote.content.replace(/<[^>]*>/g, '').length} characters
+                  {newNote.content.includes('<img') && ' (with images)'}
+                </span>
+                <span className={`flex items-center space-x-1 ${
+                  darkMode ? 'text-gray-400' : 'text-gray-500'
                 }`}>
-                  Target Address
-                </label>
-                <input
-                  type="text"
-                  value={targetAddress}
-                  onChange={(e) => setTargetAddress(e.target.value)}
-                  placeholder="addr... or addr_test... (Cardano address to send ADA to)"
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50 ${
-                    darkMode 
-                      ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-red-500' 
-                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-red-500'
-                  }`}
-                />
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Text Editor</span>
+                </span>
               </div>
 
-              {/* Amount (ADA) */}
-              <div className="space-y-2">
-                <label className={`block text-sm font-semibold ${
-                  darkMode ? 'text-gray-300' : 'text-gray-700'
-                }`}>
-                  Amount (ADA)
-                </label>
-                <input
-                  type="number"
-                  value={lovelaceAmount / 1000000}
-                  onChange={(e) => setLovelaceAmount((parseFloat(e.target.value) || 0) * 1000000)}
-                  placeholder="1.0"
-                  step="0.1"
-                  min="0.1"
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50 ${
+              {/* Additional Settings Dropdown */}
+              <div className="border-t pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowAdditionalSettings(!showAdditionalSettings)}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all ${
                     darkMode 
-                      ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-red-500' 
-                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-red-500'
+                      ? 'bg-gray-700/50 border-gray-600 hover:border-red-500' 
+                      : 'bg-gray-50 border-gray-200 hover:border-red-500'
                   }`}
-                />
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-2 rounded-lg ${
+                      darkMode ? 'bg-gray-600' : 'bg-gray-100'
+                    }`}>
+                      <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </div>
+                    <div className="text-left">
+                      <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        Additional Settings
+                      </h3>
+                      <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        Blockchain transaction settings (required)
+                      </p>
+                    </div>
+                  </div>
+                  <svg 
+                    className={`w-5 h-5 transition-transform duration-300 ${showAdditionalSettings ? 'rotate-180' : ''} ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {/* Dropdown Content */}
+                {showAdditionalSettings && (
+                  <div className={`mt-4 space-y-4 p-4 rounded-xl border-2 transition-all duration-300 ${
+                    darkMode ? 'bg-gray-700/30 border-gray-600' : 'bg-gray-50 border-gray-200'
+                  }`}>
+                    {/* Target Address */}
+                    <div className="space-y-2">
+                      <label className={`block text-sm font-semibold ${
+                        darkMode ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
+                        Target Address
+                        <span className="text-red-500 ml-1">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={targetAddress}
+                        onChange={(e) => setTargetAddress(e.target.value)}
+                        placeholder="addr... or addr_test... (Cardano address to send ADA to)"
+                        className={`w-full px-4 py-3 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50 ${
+                          darkMode 
+                            ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-red-500' 
+                            : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-red-500'
+                        }`}
+                      />
+                      <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        Required: Cardano address where ADA will be sent with the transaction
+                      </p>
+                    </div>
+
+                    {/* Amount (ADA) */}
+                    <div className="space-y-2">
+                      <label className={`block text-sm font-semibold ${
+                        darkMode ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
+                        Amount (ADA)
+                        <span className="text-red-500 ml-1">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={lovelaceAmount / 1000000}
+                          onChange={(e) => setLovelaceAmount((parseFloat(e.target.value) || 0) * 1000000)}
+                          placeholder="1.0"
+                          step="0.1"
+                          min="0.1"
+                          className={`w-full px-4 py-3 pl-12 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50 ${
+                            darkMode 
+                              ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-red-500' 
+                              : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-red-500'
+                          }`}
+                        />
+                        <div className={`absolute left-3 top-3 ${
+                          darkMode ? 'text-gray-400' : 'text-gray-500'
+                        }`}>
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        Minimum: 0.1 ADA (100,000 lovelace)
+                      </p>
+                    </div>
+
+                    {/* Validation Status */}
+                    <div className={`p-3 rounded-lg ${
+                      !targetAddress.trim() || lovelaceAmount <= 0 
+                        ? darkMode ? 'bg-red-900/30 border border-red-700/50' : 'bg-red-50 border border-red-200'
+                        : darkMode ? 'bg-green-900/30 border border-green-700/50' : 'bg-green-50 border border-green-200'
+                    }`}>
+                      <div className="flex items-center space-x-2">
+                        {!targetAddress.trim() || lovelaceAmount <= 0 ? (
+                          <>
+                            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className={`text-sm ${darkMode ? 'text-red-300' : 'text-red-700'}`}>
+                              {!targetAddress.trim() && lovelaceAmount <= 0 
+                                ? 'Target address and amount required' 
+                                : !targetAddress.trim() 
+                                  ? 'Target address required' 
+                                  : 'Amount must be at least 0.1 ADA'}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className={`text-sm ${darkMode ? 'text-green-300' : 'text-green-700'}`}>
+                              Settings valid for blockchain submission
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -710,6 +831,7 @@ const MainLayout = () => {
                     setShowNotepad(false);
                     setEditingNote(null);
                     setNewNote({ title: '', content: '' });
+                    setShowAdditionalSettings(false);
                   }}
                   className={`px-5 py-2.5 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 ${
                     darkMode 
@@ -850,4 +972,3 @@ const MainLayout = () => {
 };
 
 export default MainLayout;
-

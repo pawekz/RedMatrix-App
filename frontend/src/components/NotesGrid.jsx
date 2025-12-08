@@ -60,6 +60,29 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
     });
   };
 
+  // Function to safely render HTML content
+  const NoteContent = ({ content, darkMode }) => {
+    const createMarkup = () => {
+      // Basic sanitization - remove script tags
+      const sanitizedContent = content ? 
+        content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') : '';
+      return { __html: sanitizedContent };
+    };
+
+    return (
+      <div 
+        className={`note-content ${darkMode ? 'dark-note-content' : ''}`}
+        dangerouslySetInnerHTML={createMarkup()}
+      />
+    );
+  };
+
+  // Function to strip HTML tags for preview
+  const stripHtml = (html) => {
+    if (!html) return '';
+    return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  };
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center mt-20">
@@ -204,11 +227,52 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
                   </div>
                 </div>
 
-                <p className={`text-sm mb-4 line-clamp-3 transition-colors duration-200 ${
+                {/* Note Content - Now supports HTML */}
+                <div className={`text-sm mb-4 line-clamp-3 transition-colors duration-200 ${
                   darkMode ? 'text-gray-300 group-hover:text-gray-200' : 'text-[#666666] group-hover:text-gray-700'
                 }`}>
-                  {note.content}
-                </p>
+                  {note.content && note.content.includes('<') ? (
+                    <NoteContent content={note.content} darkMode={darkMode} />
+                  ) : (
+                    <p>{note.content || ''}</p>
+                  )}
+                </div>
+
+                {/* Show icons if note contains rich content */}
+                {note.content && (
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {note.content.includes('<b>') || note.content.includes('<strong>') && (
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
+                      }`}>Bold</span>
+                    )}
+                    {note.content.includes('<i>') || note.content.includes('<em>') && (
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
+                      }`}>Italic</span>
+                    )}
+                    {note.content.includes('<u>') && (
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
+                      }`}>Underline</span>
+                    )}
+                    {note.content.includes('<table') && (
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        darkMode ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-600'
+                      }`}>Table</span>
+                    )}
+                    {note.content.includes('<img') && (
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        darkMode ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-600'
+                      }`}>Image</span>
+                    )}
+                    {note.content.includes('<ul') || note.content.includes('<ol') && (
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        darkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-600'
+                      }`}>List</span>
+                    )}
+                  </div>
+                )}
 
                 <div className={`flex flex-col space-y-1 text-xs ${
                   darkMode ? 'text-gray-500' : 'text-[#999999]'
@@ -276,6 +340,99 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
                   )}
                 </div>
               </div>
+
+              {/* CSS for note content styling */}
+              <style jsx>{`
+                .note-content {
+                  line-height: 1.6;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  display: -webkit-box;
+                  -webkit-line-clamp: 3;
+                  -webkit-box-orient: vertical;
+                }
+                
+                .note-content :global(p) {
+                  margin-bottom: 0.5rem;
+                }
+                
+                .note-content :global(ul), .note-content :global(ol) {
+                  margin-left: 1.5rem;
+                  margin-bottom: 0.5rem;
+                }
+                
+                .note-content :global(li) {
+                  margin-bottom: 0.25rem;
+                }
+                
+                .note-content :global(img) {
+                  max-width: 100%;
+                  max-height: 100px;
+                  height: auto;
+                  border-radius: 4px;
+                  margin: 0.25rem 0;
+                  display: inline-block;
+                }
+                
+                .note-content :global(table) {
+                  width: 100%;
+                  border-collapse: collapse;
+                  margin: 0.25rem 0;
+                  font-size: 0.875rem;
+                }
+                
+                .note-content :global(th), .note-content :global(td) {
+                  border: 1px solid ${darkMode ? '#4b5563' : '#d1d5db'};
+                  padding: 4px;
+                  max-width: 150px;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  white-space: nowrap;
+                }
+                
+                .note-content :global(blockquote) {
+                  border-left: 3px solid ${darkMode ? '#4b5563' : '#d1d5db'};
+                  padding-left: 0.75rem;
+                  margin-left: 0;
+                  font-style: italic;
+                  color: ${darkMode ? '#9ca3af' : '#6b7280'};
+                  margin: 0.25rem 0;
+                }
+                
+                .note-content :global(b), .note-content :global(strong) {
+                  font-weight: 600;
+                }
+                
+                .note-content :global(i), .note-content :global(em) {
+                  font-style: italic;
+                }
+                
+                .note-content :global(u) {
+                  text-decoration: underline;
+                }
+                
+                .note-content :global(s) {
+                  text-decoration: line-through;
+                }
+                
+                .note-content :global(h1) {
+                  font-size: 1.5rem;
+                  font-weight: 600;
+                  margin: 0.25rem 0;
+                }
+                
+                .note-content :global(h2) {
+                  font-size: 1.25rem;
+                  font-weight: 600;
+                  margin: 0.25rem 0;
+                }
+                
+                .note-content :global(h3) {
+                  font-size: 1.125rem;
+                  font-weight: 600;
+                  margin: 0.25rem 0;
+                }
+              `}</style>
             </div>
           );
         })}
