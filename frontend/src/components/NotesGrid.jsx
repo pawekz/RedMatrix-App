@@ -27,7 +27,7 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
     } else {
       date = new Date(dateValue);
     }
-    
+
     if (Number.isNaN(date.getTime())) {
       return dateValue;
     }
@@ -39,7 +39,7 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
     if (!value) {
       return null;
     }
-    
+
     // Use the same UTC parsing logic as formatDateTime
     let date;
     if (typeof value === 'string') {
@@ -47,7 +47,7 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
     } else {
       date = new Date(value);
     }
-    
+
     return Number.isNaN(date.getTime()) ? null : date.getTime();
   };
 
@@ -64,13 +64,13 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
   const NoteContent = ({ content, darkMode }) => {
     const createMarkup = () => {
       // Basic sanitization - remove script tags
-      const sanitizedContent = content ? 
+      const sanitizedContent = content ?
         content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') : '';
       return { __html: sanitizedContent };
     };
 
     return (
-      <div 
+      <div
         className={`note-content ${darkMode ? 'dark-note-content' : ''}`}
         dangerouslySetInnerHTML={createMarkup()}
       />
@@ -95,9 +95,8 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
     return (
       <div className="flex-1 flex items-center justify-center mt-20">
         <div className="text-center">
-          <div className={`w-24 h-24 mx-auto mb-4 rounded-full flex items-center justify-center ${
-            darkMode ? 'bg-gray-700' : 'bg-[#F7CAC9]'
-          }`}>
+          <div className={`w-24 h-24 mx-auto mb-4 rounded-full flex items-center justify-center ${darkMode ? 'bg-gray-700' : 'bg-[#F7CAC9]'
+            }`}>
             <svg
               className={`w-12 h-12 ${darkMode ? 'text-red-400' : 'text-[#DC143C]'}`}
               fill="none"
@@ -112,9 +111,8 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
               />
             </svg>
           </div>
-          <h3 className={`text-xl font-semibold mb-2 ${
-            darkMode ? 'text-white' : 'text-[#2D2D2D]'
-          }`}>
+          <h3 className={`text-xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-[#2D2D2D]'
+            }`}>
             No Notes Yet
           </h3>
           <p className={`mb-4 ${darkMode ? 'text-gray-400' : 'text-[#666666]'}`}>
@@ -135,23 +133,21 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
     <div className="flex-1 p-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className={`text-2xl font-bold mb-2 ${
-            darkMode ? 'text-white' : 'text-[#2D2D2D]'
-          }`}>
+          <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-[#2D2D2D]'
+            }`}>
             Your Notes
           </h2>
           <p className={darkMode ? 'text-gray-400' : 'text-[#666666]'}>
             Manage and organize all your notes
           </p>
         </div>
-        
+
         <button
           onClick={onAddNote}
-          className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200 font-medium shadow-sm ${
-            darkMode
+          className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200 font-medium shadow-sm ${darkMode
               ? 'bg-red-600 hover:bg-red-700 text-white'
               : 'bg-[#DC143C] hover:bg-[#B91C3C] text-white'
-          }`}
+            }`}
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -169,25 +165,22 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
           return (
             <div
               key={note.id}
-              className={`group relative rounded-xl shadow-md border transition-all duration-300 cursor-pointer transform hover:scale-105 hover:-translate-y-2 ${
-                darkMode
+              className={`group relative rounded-xl shadow-md border transition-all duration-300 cursor-pointer transform hover:scale-105 hover:-translate-y-2 ${darkMode
                   ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 hover:border-red-500 hover:shadow-2xl hover:shadow-red-500/20'
                   : 'bg-white border-[#F7CAC9] hover:border-red-400 hover:shadow-2xl hover:shadow-red-300/30'
-              }`}
+                }`}
             >
               {/* Glow effect on hover */}
-              <div className={`absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
-                darkMode 
-                  ? 'bg-gradient-to-br from-red-600/10 to-transparent' 
+              <div className={`absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${darkMode
+                  ? 'bg-gradient-to-br from-red-600/10 to-transparent'
                   : 'bg-gradient-to-br from-red-100/50 to-transparent'
-              }`}></div>
-              
+                }`}></div>
+
               {/* Content */}
               <div className="relative p-4">
                 <div className="flex items-start justify-between mb-3">
-                  <h3 className={`text-lg font-semibold truncate flex-1 mr-2 transition-colors duration-200 ${
-                    darkMode ? 'text-white group-hover:text-red-400' : 'text-[#2D2D2D] group-hover:text-red-600'
-                  }`}>
+                  <h3 className={`text-lg font-semibold truncate flex-1 mr-2 transition-colors duration-200 ${darkMode ? 'text-white group-hover:text-red-400' : 'text-[#2D2D2D] group-hover:text-red-600'
+                    }`}>
                     {note.title}
                   </h3>
                   <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
@@ -196,11 +189,10 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
                         e.stopPropagation();
                         onEditNote && onEditNote(note);
                       }}
-                      className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 ${
-                        darkMode 
-                          ? 'text-red-400 hover:text-red-300 hover:bg-red-500/20' 
+                      className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 ${darkMode
+                          ? 'text-red-400 hover:text-red-300 hover:bg-red-500/20'
                           : 'text-[#F75270] hover:text-white hover:bg-red-500'
-                      }`}
+                        }`}
                       title="Edit Note"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,11 +205,10 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
                         e.stopPropagation();
                         onDeleteNote && onDeleteNote(note);
                       }}
-                      className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 ${
-                        darkMode 
-                          ? 'text-red-400 hover:text-red-300 hover:bg-red-500/20' 
+                      className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 ${darkMode
+                          ? 'text-red-400 hover:text-red-300 hover:bg-red-500/20'
                           : 'text-[#F75270] hover:text-white hover:bg-red-500'
-                      }`}
+                        }`}
                       title="Delete Note"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -228,9 +219,8 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
                 </div>
 
                 {/* Note Content - Now supports HTML */}
-                <div className={`text-sm mb-4 line-clamp-3 transition-colors duration-200 ${
-                  darkMode ? 'text-gray-300 group-hover:text-gray-200' : 'text-[#666666] group-hover:text-gray-700'
-                }`}>
+                <div className={`text-sm mb-4 line-clamp-3 transition-colors duration-200 ${darkMode ? 'text-gray-300 group-hover:text-gray-200' : 'text-[#666666] group-hover:text-gray-700'
+                  }`}>
                   {note.content && note.content.includes('<') ? (
                     <NoteContent content={note.content} darkMode={darkMode} />
                   ) : (
@@ -242,48 +232,41 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
                 {note.content && (
                   <div className="flex flex-wrap gap-1 mb-2">
                     {note.content.includes('<b>') || note.content.includes('<strong>') && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
-                      }`}>Bold</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
+                        }`}>Bold</span>
                     )}
                     {note.content.includes('<i>') || note.content.includes('<em>') && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
-                      }`}>Italic</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
+                        }`}>Italic</span>
                     )}
                     {note.content.includes('<u>') && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
-                      }`}>Underline</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
+                        }`}>Underline</span>
                     )}
                     {note.content.includes('<table') && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        darkMode ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-600'
-                      }`}>Table</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${darkMode ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-600'
+                        }`}>Table</span>
                     )}
                     {note.content.includes('<img') && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        darkMode ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-600'
-                      }`}>Image</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${darkMode ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-600'
+                        }`}>Image</span>
                     )}
                     {note.content.includes('<ul') || note.content.includes('<ol') && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        darkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-600'
-                      }`}>List</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${darkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-600'
+                        }`}>List</span>
                     )}
                   </div>
                 )}
 
-                <div className={`flex flex-col space-y-1 text-xs ${
-                  darkMode ? 'text-gray-500' : 'text-[#999999]'
-                }`}>
+                <div className={`flex flex-col space-y-1 text-xs ${darkMode ? 'text-gray-500' : 'text-[#999999]'
+                  }`}>
                   <div className="flex items-center justify-between">
                     <span>Created: {formatDateTime(note.createdAt)}</span>
                     {showUpdated && (
                       <span>Updated: {formatDateTime(note.updatedAt)}</span>
                     )}
                   </div>
-                  
+
                   {/* Blockchain Info */}
                   {note.lastTxHash && (
                     <div className="flex items-center space-x-1 mt-2 p-2 rounded-lg bg-green-500/10 border border-green-500/20">
@@ -298,9 +281,8 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className={`text-xs underline hover:no-underline font-medium ${
-                          darkMode ? 'text-blue-400' : 'text-blue-600'
-                        }`}
+                        className={`text-xs underline hover:no-underline font-medium ${darkMode ? 'text-blue-400' : 'text-blue-600'
+                          }`}
                         title={note.lastTxHash}
                       >
                         View TX
@@ -311,11 +293,10 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
                             e.stopPropagation();
                             copyTxHash(note.lastTxHash);
                           }}
-                          className={`p-1 rounded transition-all duration-200 hover:scale-125 ${
-                            darkMode 
-                              ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' 
+                          className={`p-1 rounded transition-all duration-200 hover:scale-125 ${darkMode
+                              ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
                               : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
-                          }`}
+                            }`}
                           title="Copy transaction hash"
                         >
                           {copiedTxHash === note.lastTxHash ? (
@@ -329,9 +310,8 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
                           )}
                         </button>
                         {copiedTxHash === note.lastTxHash && (
-                          <span className={`absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs rounded whitespace-nowrap shadow-lg ${
-                            darkMode ? 'bg-gray-700 text-white' : 'bg-gray-800 text-white'
-                          }`}>
+                          <span className={`absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs rounded whitespace-nowrap shadow-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-800 text-white'
+                            }`}>
                             Copied!
                           </span>
                         )}
@@ -342,7 +322,7 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
               </div>
 
               {/* CSS for note content styling */}
-              <style jsx>{`
+              <style>{`
                 .note-content {
                   line-height: 1.6;
                   overflow: hidden;
