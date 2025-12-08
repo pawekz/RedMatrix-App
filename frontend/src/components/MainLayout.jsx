@@ -19,6 +19,8 @@ const MainLayout = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showNotepad, setShowNotepad] = useState(false);
   const [newNote, setNewNote] = useState({ title: '', content: '' });
+  const [targetAddress, setTargetAddress] = useState('');
+  const [lovelaceAmount, setLovelaceAmount] = useState('1000000'); // Default 1 ADA
   const [editingNote, setEditingNote] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showWalletModal, setShowWalletModal] = useState(false);
@@ -106,6 +108,8 @@ const MainLayout = () => {
   const handleAddNote = () => {
     console.log('Add Note clicked');
     setNewNote({ title: '', content: '' });
+    setTargetAddress('');
+    setLovelaceAmount('1000000');
     setShowNotepad(true);
   };
 
@@ -123,6 +127,21 @@ const MainLayout = () => {
       return;
     }
 
+    if (!targetAddress.trim()) {
+      alert('Please provide a target Cardano address');
+      return;
+    }
+
+    if (!targetAddress.startsWith('addr') && !targetAddress.startsWith('addr_test')) {
+      alert('Please provide a valid Cardano address (should start with addr or addr_test)');
+      return;
+    }
+
+    if (lovelaceAmount <= 0) {
+      alert('Please provide a valid amount (minimum 0.1 ADA)');
+      return;
+    }
+
     setBlockchainLoading(true);
 
     try {
@@ -135,7 +154,9 @@ const MainLayout = () => {
           walletApi,
           walletAddress,
           editingNote.id,
-          newNote.content
+          newNote.content,
+          targetAddress,
+          lovelaceAmount
         );
         console.log('Blockchain UPDATE successful:', blockchainData);
 
@@ -164,6 +185,8 @@ const MainLayout = () => {
         setNotes(updatedNotes);
         setShowNotepad(false);
         setNewNote({ title: '', content: '' });
+        setTargetAddress('');
+        setLovelaceAmount('1000000');
         setEditingNote(null);
         alert('Note updated successfully on blockchain!');
       } else {
@@ -197,6 +220,8 @@ const MainLayout = () => {
           walletAddress,
           newNote.content,
           newNote.title,
+          targetAddress,
+          lovelaceAmount,
           savedNote.id // Pass the real note ID
         );
         console.log('Blockchain CREATE successful:', blockchainData);
@@ -228,6 +253,8 @@ const MainLayout = () => {
         setNotes(updatedNotes);
         setShowNotepad(false);
         setNewNote({ title: '', content: '' });
+        setTargetAddress('');
+        setLovelaceAmount('1000000');
         alert('Note created successfully on blockchain!');
       }
     } catch (error) {
@@ -266,6 +293,7 @@ const MainLayout = () => {
           walletAddress,
           note.id,
           note.content
+          // No target address and amount - will use defaults
         );
         console.log('Blockchain DELETE successful:', blockchainData);
 
@@ -609,24 +637,55 @@ const MainLayout = () => {
                   value={newNote.content}
                   onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
                   placeholder="Start writing your note here..."
-                  rows="10"
+                  rows="6"
                   className={`flex-1 w-full px-4 py-3 rounded-xl border-2 resize-none transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50 ${
                     darkMode 
                       ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-red-500' 
                       : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-red-500'
                   }`}
                 />
-                <div className={`flex items-center justify-between text-xs ${
-                  darkMode ? 'text-gray-400' : 'text-gray-500'
+              </div>
+
+              {/* Target Address */}
+              <div className="space-y-2">
+                <label className={`block text-sm font-semibold ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  <span>{newNote.content.length} characters</span>
-                  <span className="flex items-center space-x-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Saved to blockchain</span>
-                  </span>
-                </div>
+                  Target Address
+                </label>
+                <input
+                  type="text"
+                  value={targetAddress}
+                  onChange={(e) => setTargetAddress(e.target.value)}
+                  placeholder="addr... or addr_test... (Cardano address to send ADA to)"
+                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50 ${
+                    darkMode 
+                      ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-red-500' 
+                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-red-500'
+                  }`}
+                />
+              </div>
+
+              {/* Amount (ADA) */}
+              <div className="space-y-2">
+                <label className={`block text-sm font-semibold ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  Amount (ADA)
+                </label>
+                <input
+                  type="number"
+                  value={lovelaceAmount / 1000000}
+                  onChange={(e) => setLovelaceAmount((parseFloat(e.target.value) || 0) * 1000000)}
+                  placeholder="1.0"
+                  step="0.1"
+                  min="0.1"
+                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50 ${
+                    darkMode 
+                      ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-red-500' 
+                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-red-500'
+                  }`}
+                />
               </div>
             </div>
 
@@ -662,7 +721,7 @@ const MainLayout = () => {
                 </button>
                 <button
                   onClick={handleSaveNote}
-                  disabled={blockchainLoading || !newNote.title.trim() || !newNote.content.trim()}
+                  disabled={blockchainLoading || !newNote.title.trim() || !newNote.content.trim() || !targetAddress.trim() || lovelaceAmount <= 0}
                   className="px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-medium hover:from-red-700 hover:to-red-800 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-red-500/30 flex items-center space-x-2"
                 >
                   {blockchainLoading ? (
