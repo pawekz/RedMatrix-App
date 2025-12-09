@@ -42,6 +42,9 @@ public class Note {
     @Column(name = "content_hash")
     private String contentHash;
     
+    @Column(name = "verification_status")
+    private String verificationStatus;
+    
     // Constructors
     public Note() {}
     
@@ -98,6 +101,14 @@ public class Note {
 
     public void setContentHash(String contentHash) {
         this.contentHash = contentHash;
+    }
+    
+    public String getVerificationStatus() {
+        return verificationStatus;
+    }
+
+    public void setVerificationStatus(String verificationStatus) {
+        this.verificationStatus = verificationStatus;
     }
     
     public OffsetDateTime getCreatedAt() {
