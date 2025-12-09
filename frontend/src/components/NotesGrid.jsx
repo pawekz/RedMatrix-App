@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMode }) => {
   const displayNotes = notes && notes.length > 0 ? notes : [];
   const [copiedTxHash, setCopiedTxHash] = useState(null);
+  const [viewingNote, setViewingNote] = useState(null);
 
   const manilaFormatter = React.useMemo(() => new Intl.DateTimeFormat('en-PH', {
     year: 'numeric',
@@ -75,12 +76,6 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
         dangerouslySetInnerHTML={createMarkup()}
       />
     );
-  };
-
-  // Function to strip HTML tags for preview
-  const stripHtml = (html) => {
-    if (!html) return '';
-    return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   };
 
   if (loading) {
@@ -165,6 +160,7 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
           return (
             <div
               key={note.id}
+              onClick={() => setViewingNote(note)}
               className={`group relative rounded-xl shadow-md border transition-all duration-300 cursor-pointer transform hover:scale-105 hover:-translate-y-2 ${darkMode
                   ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 hover:border-red-500 hover:shadow-2xl hover:shadow-red-500/20'
                   : 'bg-white border-[#F7CAC9] hover:border-red-400 hover:shadow-2xl hover:shadow-red-300/30'
@@ -417,6 +413,183 @@ const NotesGrid = ({ notes, loading, onEditNote, onDeleteNote, onAddNote, darkMo
           );
         })}
       </div>
+
+      {/* View Note Modal */}
+      {viewingNote && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-md z-50 p-4"
+          onClick={() => setViewingNote(null)}
+        >
+          <div 
+            className={`max-w-4xl w-full max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className={`sticky top-0 flex items-center justify-between p-6 border-b ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
+              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-[#2D2D2D]'}`}>
+                {viewingNote.title}
+              </h2>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => {
+                    setViewingNote(null);
+                    onEditNote && onEditNote(viewingNote);
+                  }}
+                  className={`px-4 py-2 rounded-lg transition-colors duration-200 font-medium ${darkMode
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-[#DC143C] hover:bg-[#B91C3C] text-white'
+                    }`}
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => setViewingNote(null)}
+                  className={`p-2 rounded-lg transition-colors duration-200 ${darkMode
+                      ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                    }`}
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6">
+              {/* Note Content */}
+              <div className={`mb-6 ${darkMode ? 'text-gray-200' : 'text-[#666666]'}`}>
+                {viewingNote.content && viewingNote.content.includes('<') ? (
+                  <div
+                    className={`note-view-content ${darkMode ? 'dark-note-content' : ''}`}
+                    dangerouslySetInnerHTML={{
+                      __html: viewingNote.content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                    }}
+                  />
+                ) : (
+                  <p className="whitespace-pre-wrap">{viewingNote.content || ''}</p>
+                )}
+              </div>
+
+              {/* Metadata */}
+              <div className={`border-t pt-4 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                <div className={`flex flex-col space-y-2 text-sm ${darkMode ? 'text-gray-400' : 'text-[#999999]'}`}>
+                  <div className="flex items-center justify-between">
+                    <span>Created: {formatDateTime(viewingNote.createdAt)}</span>
+                    {getComparableTime(viewingNote.createdAt) !== null && 
+                     getComparableTime(viewingNote.updatedAt) !== null && 
+                     getComparableTime(viewingNote.updatedAt) !== getComparableTime(viewingNote.createdAt) && (
+                      <span>Updated: {formatDateTime(viewingNote.updatedAt)}</span>
+                    )}
+                  </div>
+
+                  {/* Blockchain Info */}
+                  {viewingNote.lastTxHash && (
+                    <div className={`flex items-center space-x-2 mt-2 p-3 rounded-lg ${darkMode ? 'bg-green-500/10 border border-green-500/20' : 'bg-green-50 border border-green-200'}`}>
+                      <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span className={`text-sm font-medium ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                        On-chain
+                      </span>
+                      <a
+                        href={`https://preview.cardanoscan.io/transaction/${viewingNote.lastTxHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`text-sm underline hover:no-underline font-medium ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}
+                      >
+                        View TX
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CSS for note view content styling */}
+      <style>{`
+        .note-view-content {
+          line-height: 1.8;
+        }
+        
+        .note-view-content p {
+          margin-bottom: 1rem;
+        }
+        
+        .note-view-content ul, .note-view-content ol {
+          margin-left: 1.5rem;
+          margin-bottom: 1rem;
+        }
+        
+        .note-view-content li {
+          margin-bottom: 0.5rem;
+        }
+        
+        .note-view-content img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 8px;
+          margin: 1rem 0;
+        }
+        
+        .note-view-content table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 1rem 0;
+        }
+        
+        .note-view-content th, .note-view-content td {
+          border: 1px solid ${darkMode ? '#4b5563' : '#d1d5db'};
+          padding: 8px;
+        }
+        
+        .note-view-content blockquote {
+          border-left: 4px solid ${darkMode ? '#4b5563' : '#d1d5db'};
+          padding-left: 1rem;
+          margin-left: 0;
+          font-style: italic;
+          color: ${darkMode ? '#9ca3af' : '#6b7280'};
+          margin: 1rem 0;
+        }
+        
+        .note-view-content b, .note-view-content strong {
+          font-weight: 600;
+        }
+        
+        .note-view-content i, .note-view-content em {
+          font-style: italic;
+        }
+        
+        .note-view-content u {
+          text-decoration: underline;
+        }
+        
+        .note-view-content s {
+          text-decoration: line-through;
+        }
+        
+        .note-view-content h1 {
+          font-size: 2rem;
+          font-weight: 600;
+          margin: 1.5rem 0 1rem 0;
+        }
+        
+        .note-view-content h2 {
+          font-size: 1.5rem;
+          font-weight: 600;
+          margin: 1.25rem 0 0.75rem 0;
+        }
+        
+        .note-view-content h3 {
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin: 1rem 0 0.5rem 0;
+        }
+      `}</style>
     </div>
   );
 };
