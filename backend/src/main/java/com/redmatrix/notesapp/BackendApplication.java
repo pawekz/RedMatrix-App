@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * RedMatrix Notes Application
@@ -15,6 +16,7 @@ import org.springframework.context.ConfigurableApplicationContext;
  * @version 1.0
  */
 @SpringBootApplication
+@EnableScheduling
 public class BackendApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(BackendApplication.class);
